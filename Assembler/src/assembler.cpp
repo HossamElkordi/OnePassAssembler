@@ -35,7 +35,9 @@ string ReadFile(string path);
 
 int main() {
 	setOPTAB();
-	ReadFile();
+	string path;
+    cin>>path;
+	ReadFile(path);
 	return 0;
 }
 
@@ -62,21 +64,53 @@ void labelAdder(string label,int location){
 string ReadFile(string path)
 {
     int PC=0;
+    string first;
     ifstream CodeFile;
-    vector<string>Line;
+    string row;
+    list<string> splitted;
     list<string>::iterator ilist;
-    CodeFile.open("OPTAB.txt", ios::in);
-    while (getline(opFile, line)) {
-        split(line, " ", &KVlist);
-        ilist = KVlist.begin();
-        key = *ilist;
-        advance(ilist, 1);
-        value = *ilist;
-        KVlist.clear();
-        OPTAB.insert(pair<string, string>(key, value));
+    vector<string>container;
+    CodeFile.open(path, ios::in);
+    while (getline(CodeFile, row))
+    {
+        if (row.find('.')!=std::string::npos)
+            continue;
+        split(row, "\\s+", &splitted);
+        for (ilist = splitted.begin(); ilist != splitted.end(); ++ilist)
+            container.push_back(*ilist);
+        if(symTab.count(container.at(0))>0)
+        {
+            //Label,operand,1st,2nd,pc
+            string first=container.at(1),second=NULL;
+            if(container.at(1).find(',')==std::string::npos)
+            {
+                list<string>temp;
+                split(container.at(1),",",&temp);
+                ilist = temp.begin();
+                first = *ilist;
+                advance(ilist, 1);
+                second = *ilist;
+            }
+            myFunc(NULL,container.at(0),first,second,pc);
+        } //TODO declaration and initialization of variables and warnings and errors
+        else if(symTab.count(container.at(1))>0)
+        {
+            string first=container.at(1),second=NULL;
+            if(container.at(2).find(',')==std::string::npos)
+            {
+                list<string>temp;
+                split(container.at(1),",",&temp);
+                ilist = temp.begin();
+                first = *ilist;
+                advance(ilist, 1);
+                second = *ilist;
+            }
+            myFunc(container.at(0),container.at(1),first,second,pc);
+        }
+        splitted.clear();
         pc+=3;
     }
-    opFile.close();
+    CodeFile.close();
 }
 
 void memoryLocationAdder(string identifier,int location){
