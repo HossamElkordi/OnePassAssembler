@@ -12,6 +12,9 @@ map<string, string> OPTAB;
 bool extended = 0;
 bool pc = 1;
 bool b = 0;
+map<string, vector<string>> symTab;
+string current="";
+bool errorFlag=0;
 
 //============== End Of Global Variable ==================================
 
@@ -22,12 +25,31 @@ void split(string str, string seperator, list<string> * strings);
 string hex2bin(string hexa);
 string bin2hex(string bin);
 void setOPTAB();
+void memoryLocationAdder(string identifier,int location);
 
 //============== End Of Functions declarations ===========================
 
 int main() {
 	setOPTAB();
 	return 0;
+}
+
+void memoryLocationAdder(string identifier,int location){
+    if ( symTab.find(identifier) == symTab.end() || symTab[identifier].front()=="*") {
+        current=current+"XXXXX";
+        if ( symTab.find(identifier) == symTab.end()){
+            vector<string> temp;
+            temp.push_back("*");
+            temp.push_back(to_string(location));
+            symTab[identifier]=temp;
+        }
+        else{
+            symTab[identifier].push_back(to_string(location));
+        }
+
+    } else {
+        current=current+symTab[identifier].back();
+    }
 }
 
 void split(string str, string seperator, list<string> * strings){
