@@ -12,6 +12,8 @@ using namespace std;
 //============== Global Variable =========================================
 
 map<string, string> OPTAB;
+map<string, string> REGTAB;
+vector<string> DIRECTIVES;
 bool extended = 0;
 bool pc = 1;
 bool b = 0;
@@ -19,6 +21,7 @@ map<string, vector<string>> symTab;
 string current="";
 bool errorFlag=0;
 string FileCode="";
+
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
@@ -28,13 +31,18 @@ void split(string str, string seperator, list<string> * strings);
 string hex2bin(string hexa);
 string bin2hex(string bin);
 void setOPTAB();
+void setREGTAB();
+void setDirectives();
 void memoryLocationAdder(string identifier,int location);
 void labelAdder(string label,int location);
 string ReadFile(string path);
+
 //============== End Of Functions declarations ===========================
 
 int main() {
 	setOPTAB();
+	setREGTAB();
+	setDirectives();
 	string path;
     cin>>path;
 	ReadFile(path);
@@ -59,6 +67,53 @@ void labelAdder(string label,int location){
         errorFlag=1;
         //this means that you used the same label twice which is forbidden
     }
+}
+
+void memoryLocationAdder(string identifier,int location){
+    if ( symTab.find(identifier) == symTab.end() || symTab[identifier].front()=="*") {
+        current=current+"XXXXX";
+        if ( symTab.find(identifier) == symTab.end()){
+            vector<string> temp;
+            temp.push_back("*");
+            temp.push_back(to_string(location));
+            symTab[identifier]=temp;
+        }
+        else{
+            symTab[identifier].push_back(to_string(location));
+        }
+
+    } else {
+        current=current+symTab[identifier].back();
+    }
+}
+
+void updateObjectCode(string address, vector<string> * appearences){
+	list<string> textRecords;
+	list<string>::iterator ilist;
+	split(FileCode, "\n", &textRecords);
+	int reqAddress, start, length, startAdd, endAdd, i;
+	string before, after;
+	for(string app : appearences){
+		reqAddress = stoi(app, 0, 16);
+		for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
+			start = stoi(ilist->substr(1, 0), 0, 16);
+			length = stoi(ilist->substr(7, 2), 0, 16);
+			if(reqAddress < (start + length)){
+				startAdd = (2 * (reqAddress - start)) + 9;
+				endAdd = startAdd + 4; // 5 digits address
+				i = app.length() - 1;
+				while(i >= 0){
+					ilist->at(endAdd) = app[i];
+					--i;
+					--endAdd;
+				}
+				while (endAdd != startAdd){
+					ilist->at(endAdd) = "0";
+					--endAdd;
+				}
+			}
+		}
+	}
 }
 
 string ReadFile(string path)
@@ -113,24 +168,6 @@ string ReadFile(string path)
     CodeFile.close();
 }
 
-void memoryLocationAdder(string identifier,int location){
-    if ( symTab.find(identifier) == symTab.end() || symTab[identifier].front()=="*") {
-        current=current+"XXXXX";
-        if ( symTab.find(identifier) == symTab.end()){
-            vector<string> temp;
-            temp.push_back("*");
-            temp.push_back(to_string(location));
-            symTab[identifier]=temp;
-        }
-        else{
-            symTab[identifier].push_back(to_string(location));
-        }
-
-    } else {
-        current=current+symTab[identifier].back();
-    }
-}
-
 void split(string str, string seperator, list<string> * strings){
 	regex rgx(seperator);
 	sregex_token_iterator iter(str.begin(),str.end(), rgx, -1);
@@ -154,6 +191,33 @@ void setOPTAB() {
 		value = *ilist;
 		KVlist.clear();
 		OPTAB.insert(pair<string, string>(key, value));
+	}
+	opFile.close();
+}
+
+void setREGTAB() {
+	string line, key, value;
+	ifstream opFile;
+	list<string> KVlist;
+	list<string>::iterator ilist;
+	opFile.open("REGTAB.txt", ios::in);
+	while (getline(opFile, line)) {
+		split(line, " ", &KVlist);
+		ilist = KVlist.begin();
+		key = *ilist;
+		advance(ilist, 1);
+		value = *ilist;
+		KVlist.clear();
+		REGTAB.insert(pair<string, string>(key, value));
+	}
+	opFile.close();
+}
+
+void setDirectives(){
+	string dir;
+	ifstream opFile;
+	while(getline(opFile, dir)){
+		DIRECTIVES.push_back(dir);
 	}
 	opFile.close();
 }
