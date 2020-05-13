@@ -18,7 +18,7 @@ bool b = 0;
 map<string, vector<string>> symTab;
 string current="";
 bool errorFlag=0;
-
+string FileCode="";
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
@@ -30,11 +30,12 @@ string bin2hex(string bin);
 void setOPTAB();
 void memoryLocationAdder(string identifier,int location);
 void labelAdder(string label,int location);
-
+string ReadFile(string path);
 //============== End Of Functions declarations ===========================
 
 int main() {
 	setOPTAB();
+	ReadFile();
 	return 0;
 }
 
@@ -56,6 +57,26 @@ void labelAdder(string label,int location){
         errorFlag=1;
         //this means that you used the same label twice which is forbidden
     }
+}
+
+string ReadFile(string path)
+{
+    int PC=0;
+    ifstream CodeFile;
+    vector<string>Line;
+    list<string>::iterator ilist;
+    CodeFile.open("OPTAB.txt", ios::in);
+    while (getline(opFile, line)) {
+        split(line, " ", &KVlist);
+        ilist = KVlist.begin();
+        key = *ilist;
+        advance(ilist, 1);
+        value = *ilist;
+        KVlist.clear();
+        OPTAB.insert(pair<string, string>(key, value));
+        pc+=3;
+    }
+    opFile.close();
 }
 
 void memoryLocationAdder(string identifier,int location){
