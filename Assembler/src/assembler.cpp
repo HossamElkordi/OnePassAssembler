@@ -3,7 +3,10 @@
 #include <list>
 #include <map>
 #include <regex>
-
+#include <iterator>
+#include<string>
+#include<vector>
+#include<string>
 using namespace std;
 
 //============== Global Variable =========================================
