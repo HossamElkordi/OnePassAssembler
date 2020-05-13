@@ -26,12 +26,33 @@ string hex2bin(string hexa);
 string bin2hex(string bin);
 void setOPTAB();
 void memoryLocationAdder(string identifier,int location);
+void labelAdder(string label,int location);
 
 //============== End Of Functions declarations ===========================
 
 int main() {
 	setOPTAB();
 	return 0;
+}
+
+void labelAdder(string label,int location){
+    if ( symTab.find(label) == symTab.end() ) {
+        vector<string> tempo;
+        tempo.push_back(to_string(location));
+        symTab[label]=tempo;
+    }else if(symTab[label].front()=="*"){
+        //********************************************************************
+        //code to be added here
+        //code to iterate the vector and change the places left empty to the actual location
+        //_____________________________________________________________________
+        vector<string> tempo;
+        tempo.push_back(to_string(location));
+        symTab[label]=tempo;
+
+    }else {
+        errorFlag=1;
+        //this means that you used the same label twice which is forbidden
+    }
 }
 
 void memoryLocationAdder(string identifier,int location){
