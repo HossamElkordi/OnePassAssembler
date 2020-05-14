@@ -87,13 +87,14 @@ void memoryLocationAdder(string identifier,int location){
     }
 }
 
-void updateObjectCode(string address, vector<string> * appearences){
+void updateObjectCode(string address, vector<string> appearences){
 	list<string> textRecords;
 	list<string>::iterator ilist;
 	split(FileCode, "\n", &textRecords);
 	int reqAddress, start, length, startAdd, endAdd, i;
 	string before, after;
 	for(string app : appearences){
+		if(app == "*") continue;
 		reqAddress = stoi(app, 0, 16);
 		for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
 			start = stoi(ilist->substr(1, 0), 0, 16);
