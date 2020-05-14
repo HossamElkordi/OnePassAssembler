@@ -155,7 +155,7 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            myFunc("",container.at(0),first,second,PC);
+            //myFunc("",container.at(0),first,second,PC);
         } //TODO declaration and initialization of variables and warnings and errors
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
@@ -169,7 +169,7 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            myFunc(container.at(0),container.at(1),first,second,PC);
+            //myFunc(container.at(0),container.at(1),first,second,PC);
         }
         splitted.clear();
         container.clear();
