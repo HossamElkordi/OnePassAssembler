@@ -44,6 +44,7 @@ int main() {
 	setREGTAB();
 	setDirectives();
 	string path;
+	cout<<"Enter the path of the file";
     cin>>path;
 	ReadFile(path);
 	return 0;
@@ -109,7 +110,7 @@ void updateObjectCode(string address, vector<string> appearences){
 					--endAdd;
 				}
 				while (endAdd >= startAdd){
-					ilist->at(endAdd) = "0";
+					ilist->at(endAdd) = '0';
 					--endAdd;
 				}
 				break;
@@ -139,11 +140,11 @@ string ReadFile(string path)
         split(row, "\\s+", &splitted);
         for (ilist = splitted.begin(); ilist != splitted.end(); ++ilist)
             container.push_back(*ilist);
-        if(symTab.count(container.at(0))>0)
+        if(OPTAB.find(container.at(0))!=OPTAB.end())
         {
             //Label,operand,1st,2nd,pc
-            string first=container.at(1),second=NULL;
-            if(container.at(1).find(',')==std::string::npos)
+            string first=container.at(1),second="";
+            if(container.at(1).find(',')!=std::string::npos)
             {
                 list<string>temp;
                 split(container.at(1),",",&temp);
@@ -152,12 +153,12 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            myFunc(NULL,container.at(0),first,second,pc);
+            myFunc("",container.at(0),first,second,PC);
         } //TODO declaration and initialization of variables and warnings and errors
-        else if(symTab.count(container.at(1))>0)
+        else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
-            string first=container.at(1),second=NULL;
-            if(container.at(2).find(',')==std::string::npos)
+            string first=container.at(1),second="";
+            if(container.at(2).find(',')!=std::string::npos)
             {
                 list<string>temp;
                 split(container.at(1),",",&temp);
@@ -166,10 +167,11 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            myFunc(container.at(0),container.at(1),first,second,pc);
+            myFunc(container.at(0),container.at(1),first,second,PC);
         }
         splitted.clear();
-        pc+=3;
+        container.clear();
+        PC+=3;
     }
     CodeFile.close();
 }
