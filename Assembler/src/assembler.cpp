@@ -225,6 +225,7 @@ void setREGTAB() {
 void setDirectives(){
 	string dir;
 	ifstream opFile;
+	opFile.open("DIRECTIVES.txt", ios::in);
 	while(getline(opFile, dir)){
 		DIRECTIVES.push_back(dir);
 	}
