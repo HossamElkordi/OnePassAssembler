@@ -181,7 +181,8 @@ void split(string str, string seperator, list<string> * strings){
 	sregex_token_iterator iter(str.begin(),str.end(), rgx, -1);
 	sregex_token_iterator end;
 	for ( ; iter != end; ++iter)
-		strings->push_back(*iter);
+	    if(*iter!="")
+		    strings->push_back(*iter);
 }
 
 
