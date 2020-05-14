@@ -7,13 +7,15 @@
 #include<string>
 #include<vector>
 #include<string>
+#include <unordered_set>
+
 using namespace std;
 
 //============== Global Variable =========================================
 
 map<string, string> OPTAB;
 map<string, string> REGTAB;
-vector<string> DIRECTIVES;
+unordered_set<string> DIRECTIVES;
 bool extended = 0;
 bool pc = 1;
 bool b = 0;
@@ -227,7 +229,7 @@ void setDirectives(){
 	ifstream opFile;
 	opFile.open("DIRECTIVES.txt", ios::in);
 	while(getline(opFile, dir)){
-		DIRECTIVES.push_back(dir);
+		DIRECTIVES.insert(dir);
 	}
 	opFile.close();
 }
