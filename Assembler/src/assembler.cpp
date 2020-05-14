@@ -8,13 +8,13 @@
 #include<vector>
 #include<string>
 #include <unordered_set>
-
+#include <unordered_map>
 using namespace std;
 
 //============== Global Variable =========================================
 
-map<string, string> OPTAB;
-map<string, string> REGTAB;
+unordered_map<string, string> OPTAB;
+unordered_map<string, string> REGTAB;
 unordered_set<string> DIRECTIVES;
 bool extended = 0;
 bool pc = 1;
