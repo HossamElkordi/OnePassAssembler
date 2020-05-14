@@ -101,9 +101,9 @@ void updateObjectCode(string address, vector<string> * appearences){
 			if(reqAddress < (start + length)){
 				startAdd = (2 * (reqAddress - start)) + 9;
 				endAdd = startAdd + 4; // 5 digits address
-				i = app.length() - 1;
+				i = address.length() - 1;
 				while(i >= 0){
-					ilist->at(endAdd) = app[i];
+					ilist->at(endAdd) = address[i];
 					--i;
 					--endAdd;
 				}
