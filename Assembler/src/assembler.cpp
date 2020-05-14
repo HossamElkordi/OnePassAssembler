@@ -38,6 +38,7 @@ void setDirectives();
 void memoryLocationAdder(string identifier,int location);
 void labelAdder(string label,int location);
 string ReadFile(string path);
+int displacementCalculator(int address);
 
 //============== End Of Functions declarations ===========================
 
@@ -50,6 +51,17 @@ int main() {
     cin>>path;
 	ReadFile(path);
 	return 0;
+}
+
+int displacementCalculator(int address){
+    if(abs(address-pc)>2048){
+        errorFlag= true;
+        return 0;
+
+    } else{
+        pc=true;
+        return address-pc;
+    }
 }
 
 void labelAdder(string label,int location){
