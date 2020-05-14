@@ -108,12 +108,17 @@ void updateObjectCode(string address, vector<string> appearences){
 					--i;
 					--endAdd;
 				}
-				while (endAdd != startAdd){
+				while (endAdd >= startAdd){
 					ilist->at(endAdd) = "0";
 					--endAdd;
 				}
+				break;
 			}
 		}
+	}
+	FileCode = "";
+	for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
+		FileCode += *ilist;
 	}
 }
 
