@@ -48,7 +48,7 @@ int main() {
     setREGTAB();
 	setDirectives();
 	string path;
-	cout<<"Enter the path of the file";
+	cout<<"Enter the path of the file"<<endl;
     cin>>path;
 	ReadFile(path);
     return 0;
@@ -157,6 +157,8 @@ string ReadFile(string path)
         split(row, "\\s+", &splitted);
         for (ilist = splitted.begin(); ilist != splitted.end(); ++ilist)
             container.push_back(*ilist);
+        for(int i=0;i<container.size();++i)
+            transform(container.at(i).begin(), container.at(i).end(), container.at(i).begin(), ::toupper);
         if(OPTAB.find(container.at(0))!=OPTAB.end())
         {
             //Label,operand,1st,2nd,pc
@@ -191,7 +193,6 @@ string ReadFile(string path)
         else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
         {
             string str = container.at(1);
-            transform(str.begin(), str.end(), str.begin(), ::toupper);
             stringstream Str2Int(container.at(2));
             int x = 0;
             if((str.compare("WORD")) == 0){
@@ -205,6 +206,11 @@ string ReadFile(string path)
                 Str2Int >> x;
                 PC += x;
             }
+        }
+        else if(DIRECTIVES.find(container.at(0))!=DIRECTIVES.end())
+        {
+            if(container.at(0)=="START")
+                PC=stoi(container.at(1));
         }
         splitted.clear();
         container.clear();
