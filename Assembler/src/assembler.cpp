@@ -9,6 +9,7 @@
 #include<string>
 #include <unordered_set>
 #include <unordered_map>
+
 using namespace std;
 
 //============== Global Variable =========================================
@@ -16,20 +17,20 @@ using namespace std;
 unordered_map<string, string> OPTAB;
 unordered_map<string, string> REGTAB;
 unordered_set<string> DIRECTIVES;
-bool extended = 0;
-bool pc = 1;
-bool b = 0;
+bool pc = true;
 map<string, vector<string>> symTab;
-string current="";
-bool errorFlag=0;
-string FileCode="";
+string current;
+bool errorFlag=false;
+string FileCode;
+int format;
 
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
 
 void split(string str, string seperator, list<string> * strings);
-//string getObjectOpcode(string opcode, list<string> * operands);
+string getObjectOpcode(string opcode, string operand1, string operand2);
+string flags(string operand, const string& indexed);
 string hex2bin(string hexa);
 string bin2hex(string bin);
 void setOPTAB();
@@ -43,14 +44,14 @@ int displacementCalculator(int address);
 //============== End Of Functions declarations ===========================
 
 int main() {
-	setOPTAB();
-	setREGTAB();
+    setOPTAB();
+    setREGTAB();
 	setDirectives();
 	string path;
 	cout<<"Enter the path of the file";
     cin>>path;
 	ReadFile(path);
-	return 0;
+    return 0;
 }
 
 int displacementCalculator(int address){
@@ -103,38 +104,40 @@ void memoryLocationAdder(string identifier,int location){
 }
 
 void updateObjectCode(string address, vector<string> appearences){
-	list<string> textRecords;
-	list<string>::iterator ilist;
-	split(FileCode, "\n", &textRecords);
-	int reqAddress, start, length, startAdd, endAdd, i;
-	string before, after;
-	for(string app : appearences){
-		if(app == "*") continue;
-		reqAddress = stoi(app, 0, 16);
-		for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
-			start = stoi(ilist->substr(1, 0), 0, 16);
-			length = stoi(ilist->substr(7, 2), 0, 16);
-			if(reqAddress < (start + length)){
-				startAdd = (2 * (reqAddress - start)) + 9;
-				endAdd = startAdd + 4; // 5 digits address
-				i = address.length() - 1;
-				while(i >= 0){
-					ilist->at(endAdd) = address[i];
-					--i;
-					--endAdd;
-				}
-				while (endAdd >= startAdd){
-					ilist->at(endAdd) = '0';
-					--endAdd;
-				}
-				break;
-			}
-		}
-	}
-	FileCode = "";
-	for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
-		FileCode += *ilist;
-	}
+    list<string> textRecords;
+    list<string>::iterator ilist;
+    split(FileCode, "\n", &textRecords);
+    int reqAddress, start, length, startAdd, endAdd, i;
+    string before, after;
+    for(string app : appearences){
+        if(app == "*") continue;
+        reqAddress = stoi(app, 0, 16);
+        for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
+            if (ilist->at(0) == 'T') {
+                start = stoi(ilist->substr(1, 0), 0, 16);
+                length = stoi(ilist->substr(7, 2), 0, 16);
+                if(reqAddress < (start + length)){
+                    startAdd = (2 * (reqAddress - start)) + 9;
+                    endAdd = startAdd + 4; // 5 digits address
+                    i = address.length() - 1;
+                    while(i >= 0){
+                        ilist->at(endAdd) = address[i];
+                        --i;
+                        --endAdd;
+                    }
+                    while (endAdd >= startAdd){
+                        ilist->at(endAdd) = '0';
+                        --endAdd;
+                    }
+                    break;
+                }
+            }
+        }
+    }
+    FileCode = "";
+    for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
+        FileCode += *ilist;
+    }
 }
 
 string ReadFile(string path)
@@ -210,110 +213,110 @@ string ReadFile(string path)
 }
 
 void split(string str, string seperator, list<string> * strings){
-	regex rgx(seperator);
-	sregex_token_iterator iter(str.begin(),str.end(), rgx, -1);
-	sregex_token_iterator end;
-	for ( ; iter != end; ++iter)
-	    if(*iter!="")
-		    strings->push_back(*iter);
+    regex rgx(seperator);
+    sregex_token_iterator iter(str.begin(),str.end(), rgx, -1);
+    sregex_token_iterator end;
+    for ( ; iter != end; ++iter)
+        if(*iter!="")
+            strings->push_back(*iter);
 }
 
 
 void setOPTAB() {
-	string line, key, value;
-	ifstream opFile;
-	list<string> KVlist;
-	list<string>::iterator ilist;
-	opFile.open("OPTAB.txt", ios::in);
-	while (getline(opFile, line)) {
-		split(line, " ", &KVlist);
-		ilist = KVlist.begin();
-		key = *ilist;
-		advance(ilist, 1);
-		value = *ilist;
-		KVlist.clear();
-		OPTAB.insert(pair<string, string>(key, value));
-	}
-	opFile.close();
+    string line, key, value;
+    ifstream opFile;
+    list<string> KVlist;
+    list<string>::iterator ilist;
+    opFile.open("OPTAB.txt", ios::in);
+    while (getline(opFile, line)) {
+        split(line, " ", &KVlist);
+        ilist = KVlist.begin();
+        key = *ilist;
+        advance(ilist, 1);
+        value = *ilist;
+        KVlist.clear();
+        OPTAB.insert(pair<string, string>(key, value));
+    }
+    opFile.close();
 }
 
 void setREGTAB() {
-	string line, key, value;
-	ifstream opFile;
-	list<string> KVlist;
-	list<string>::iterator ilist;
-	opFile.open("REGTAB.txt", ios::in);
-	while (getline(opFile, line)) {
-		split(line, " ", &KVlist);
-		ilist = KVlist.begin();
-		key = *ilist;
-		advance(ilist, 1);
-		value = *ilist;
-		KVlist.clear();
-		REGTAB.insert(pair<string, string>(key, value));
-	}
-	opFile.close();
+    string line, key, value;
+    ifstream opFile;
+    list<string> KVlist;
+    list<string>::iterator ilist;
+    opFile.open("REGTAB.txt", ios::in);
+    while (getline(opFile, line)) {
+        split(line, " ", &KVlist);
+        ilist = KVlist.begin();
+        key = *ilist;
+        advance(ilist, 1);
+        value = *ilist;
+        KVlist.clear();
+        REGTAB.insert(pair<string, string>(key, value));
+    }
+    opFile.close();
 }
 
 void setDirectives(){
-	string dir;
-	ifstream opFile;
-	opFile.open("DIRECTIVES.txt", ios::in);
-	while(getline(opFile, dir)){
-		DIRECTIVES.insert(dir);
-	}
-	opFile.close();
+    string dir;
+    ifstream opFile;
+    opFile.open("DIRECTIVES.txt", ios::in);
+    while(getline(opFile, dir)){
+        DIRECTIVES.insert(dir);
+    }
+    opFile.close();
 }
 
 string hex2bin(string hexa){
-	string bin;
-	for(char c : hexa){
-		switch(c){
-			case '0': bin += "0000"; break;
-			case '1': bin += "0001"; break;
-			case '2': bin += "0010"; break;
-			case '3': bin += "0011"; break;
-			case '4': bin += "0100"; break;
-			case '5': bin += "0101"; break;
-			case '6': bin += "0110"; break;
-			case '7': bin += "0111"; break;
-			case '8': bin += "1000"; break;
-			case '9': bin += "1001"; break;
-			case 'a':
-			case 'A': bin += "1010"; break;
-			case 'b':
-			case 'B': bin += "1011"; break;
-			case 'c':
-			case 'C': bin += "1100"; break;
-			case 'd':
-			case 'D': bin += "1101"; break;
-			case 'e':
-			case 'E': bin += "1110"; break;
-			case 'f':
-			case 'F': bin += "1111"; break;
-		}
-	}
-	return bin;
+    string bin;
+    for(char c : hexa){
+        switch(c){
+            case '0': bin += "0000"; break;
+            case '1': bin += "0001"; break;
+            case '2': bin += "0010"; break;
+            case '3': bin += "0011"; break;
+            case '4': bin += "0100"; break;
+            case '5': bin += "0101"; break;
+            case '6': bin += "0110"; break;
+            case '7': bin += "0111"; break;
+            case '8': bin += "1000"; break;
+            case '9': bin += "1001"; break;
+            case 'a':
+            case 'A': bin += "1010"; break;
+            case 'b':
+            case 'B': bin += "1011"; break;
+            case 'c':
+            case 'C': bin += "1100"; break;
+            case 'd':
+            case 'D': bin += "1101"; break;
+            case 'e':
+            case 'E': bin += "1110"; break;
+            case 'f':
+            case 'F': bin += "1111"; break;
+        }
+    }
+    return bin;
 }
 
 string bin2hex(string bin){
-	string hexa, digit;
-	int dec = 0;
-	for (unsigned int i = 0; i < bin.length(); ++i){
-		digit += bin[i];
-		if((i + 1) % 4 == 0){
-			dec = stoi(digit, 0, 2);
-			if(dec < 10){
-				// 0 -> 9
-				hexa += (char)(dec + 48);
-			}else{
-				// A -> F
-				hexa += (char)(dec + 55);
-			}
-			digit.clear();
-		}
-	}
-	return hexa;
+    string hexa, digit;
+    int dec = 0;
+    for (unsigned int i = 0; i < bin.length(); ++i){
+        digit += bin[i];
+        if((i + 1) % 4 == 0){
+            dec = stoi(digit, 0, 2);
+            if(dec < 10){
+                // 0 -> 9
+                hexa += (char)(dec + 48);
+            }else{
+                // A -> F
+                hexa += (char)(dec + 55);
+            }
+            digit.clear();
+        }
+    }
+    return hexa;
 }
 
 /*
@@ -323,72 +326,85 @@ string bin2hex(string bin){
  * 		1- index addressing
  * 		2- object code for this opcode is in 2 digits(size == 0 alse)
  */
-//string getObjectOpcode(string opcode, list<string> * operands){
-//	string ob;
-//	if(opcode[0] == '+'){
-//		extended = 1;
-//		b = pc = 0;
-//		opcode.erase(0, 1);
-//	}
-//	map<string, string>::iterator imap = OPTAB.find(opcode);
-//	if(imap != OPTAB.end()){ // valid opcode
-//		ob = imap->second;
-//
-//		if(operands->size() == 0){ // object code for this opcode is in 2 digits
-//			return ob;
-//		}
-//
-//		if(operands->size() == 2){
-//			list<string>::iterator ilist = operands->begin();
-//			advance(ilist, 1);
-//			string second = *ilist;
-//			if(second != "X"){ // object code for this opcode is in 2 digits
-//				return ob;
-//			}
-//		}
-//
-//		// object code for this opcode is in 3 digits
-//		string bin = hex2bin(ob);
-//		bin = bin.substr(0, bin.length() - 2);
-//		list<string>::iterator ilist = operands->begin();
-//		string first = *ilist;
-//		// set ni of nixbpe
-//		if(first[0] == '@'){
-//			bin += "10";
-//		}else if(first[0] == '#'){
-//			bin += "01";
-//		}else{
-//			bin += "11";
-//		}
-//		// set x of nixbpe
-//		if(operands->size() == 2){
-//			bin += "1";
-//		}else{
-//			bin += "0";
-//		}
-//		// set b of nixbpe
-//		if(b){
-//			bin += "1";
-//		}else{
-//			bin += "0";
-//		}
-//		// set p of nixbpe
-//		if(pc){
-//			bin += "1";
-//		}else{
-//			bin += "0";
-//		}
-//		// set e of nixbpe
-//		if(extended){
-//			bin += "1";
-//		}else{
-//			bin += "0";
-//		}
-//
-//		ob = bin2hex(bin);
-//
-//	}else{
-//		return "Wrong OPCODE";
-//	}
-//	return ob;
-//}
+string getObjectOpcode(string opcode, string operand1, string operand2){
+    string ob;
+    if(opcode[0] == '+'){
+        pc = false;
+        opcode.erase(0, 1);
+        format = 4;
+    }
+    unordered_map<string, string>::iterator iop = OPTAB.find(opcode);
+    if(iop != OPTAB.end()){ // valid opcode
+        ob = iop->second;
+
+        if(operand1.empty() && operand2.empty()){ // 2 digit opcode i.e. RSUB
+            format = 1;
+            return ob;
+        }
+
+        unordered_map<string, string>::iterator ireg = REGTAB.find(operand1);
+        if (operand2.empty()){
+            if (ireg == REGTAB.end()) {
+                format = (format != 4) ? 3 : 4;
+                ob = hex2bin(ob);
+                ob = ob.substr(0, ob.length() - 2);
+                ob += flags(operand1, "0");
+                return bin2hex(ob);
+            }else {
+                format = (format != 4) ? 2 : 4;
+                ob += ireg->second;
+                ob += "0";
+                return ob;
+            }
+        }else{
+            if(ireg == REGTAB.end()){
+                if (operand2 != "X"){
+                    errorFlag = true;
+                    return "";
+                }else{
+                    format = (format != 4) ? 3 : 4;
+                    ob = hex2bin(ob);
+                    ob = ob.substr(0, ob.length() - 2);
+                    ob += flags(operand1, "1");
+                    return bin2hex(ob);
+                }
+            }else{
+                ob += ireg->second;
+                ireg =  REGTAB.find(operand2);
+                if(ireg == REGTAB.end()){
+                    errorFlag = true;
+                    return "";
+                }else{
+                    ob += ireg->second;
+                    format = (format != 4) ? 2 : 4;
+                    return ob;
+                }
+            }
+        }
+    }else{
+        errorFlag = true;
+        return "";
+    }
+}
+
+string flags(string operand, const string& indexed){
+    string nixbpe;
+
+    // n i
+    if(operand[0] == '@'){
+        nixbpe += "10";
+    }else if(operand[0] == '#'){
+        nixbpe += "01";
+    }else{
+        nixbpe += "11";
+    }
+    // x
+    nixbpe += indexed;
+
+    if(pc){
+        nixbpe += "010";
+    }else{
+        nixbpe += "001";
+    }
+    return nixbpe;
+}
