@@ -7,5 +7,4 @@ include_directories(.)
 include_directories(Assembler)
 
 add_executable(onepassassembler
-    Assembler/src/assembler.cpp
-    Assembler/OPTAB.txt)
+    Assembler/src/assembler.cpp)
