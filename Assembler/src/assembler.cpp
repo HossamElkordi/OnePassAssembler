@@ -167,8 +167,9 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
+            PC+=3;
             //myFunc("",container.at(0),first,second,PC);
-        } //TODO declaration and initialization of variables and warnings and errors
+        } //TODO warnings and errors
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
             string first=container.at(1),second="";
@@ -181,11 +182,29 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
+            PC+=3;
             //myFunc(container.at(0),container.at(1),first,second,PC);
+        }
+        else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
+        {
+            string str = container.at(1);
+            transform(str.begin(), str.end(), str.begin(), ::toupper);
+            stringstream Str2Int(container.at(2));
+            int x = 0;
+            if((str.compare("WORD")) == 0){
+                PC += 3;
+            }else if((str.compare("RESW")) == 0){
+                Str2Int >> x;
+                PC += (3*x);
+            }else if((str.compare("BYTE")) == 0){
+                PC += 1;
+            }else if((str.compare("RESBYTE")) == 0){
+                Str2Int >> x;
+                PC += x;
+            }
         }
         splitted.clear();
         container.clear();
-        PC+=3;
     }
     CodeFile.close();
 }
