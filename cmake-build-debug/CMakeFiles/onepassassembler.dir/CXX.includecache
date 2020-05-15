@@ -1,0 +1,36 @@
+#IncludeRegexLine: ^[ 	]*[#%][ 	]*(include|import)[ 	]*[<"]([^">]+)([">])
+
+#IncludeRegexScan: ^.*$
+
+#IncludeRegexComplain: ^$
+
+#IncludeRegexTransform: 
+
+/home/mina/JetBrains Project/Clion/onepassassembler/Assembler/src/assembler.cpp
+iostream
+-
+fstream
+-
+list
+-
+map
+-
+regex
+-
+iterator
+-
+string
+-
+vector
+-
+string
+-
+sstream
+-
+bits/stdc++.h
+-
+unordered_set
+-
+unordered_map
+-
+
