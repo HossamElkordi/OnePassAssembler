@@ -52,16 +52,11 @@ int displacementCalculator(int address, int PC);
 int main() {
     setOPTAB();
     setREGTAB();
-    cout<<decToHexa(-8);
-//    labelAdder("ALPHA", 5);
-//    cout<<memoryLocationAdder("ALPHA", 10+1)<<endl;
-//    cout<<displacementCalculator(stoi(memoryLocationAdder("ALPHA", 10+1)), 10)<<endl;
-//    cout<<getObjectCode("LDA", "ALPHA", "", 10);
-//	setDirectives();
-//	string path;
-//	cout<<"Enter the path of the file"<<endl;
-//    cin>>path;
-//	ReadFile(path);
+	setDirectives();
+	string path;
+	cout<<"Enter the path of the file"<<endl;
+    cin>>path;
+	ReadFile(path);
     return 0;
 }
 string twosComplement(string bin){
@@ -107,7 +102,7 @@ string decToBinary(int n){
 string decToHexa(int n){
     string hexa;
     if(n < 0){
-        hexa = bin2hex(twosComplement(decToBinary(n)));
+        hexa = bin2hex(twosComplement(decToBinary(abs(n))));
     }else {
         while (n != 0) {
             int temp = 0;
@@ -512,14 +507,33 @@ string getObjectCode(string opcode, string op1, string op2, int PC) {
     }
     string ob;
     if (format == 3 || format == 4) {
-        ob = memoryLocationAdder(op1, PC + 1);
+        if(op1[0] == '@'){
+            op1.erase(0, 1);
+        }
+        if(op1[0] == '#'){
+            op1.erase(0, 1);
+            if(op1[0] >= '0' && op1[0] <= '9'){
+                ob = decToHexa(stoi(op1));
+                return (format == 3) ? opobcode + ob.substr(2, 3) : opobcode + ob;
+            }else {
+                ob = memoryLocationAdder(op1, PC + 1);
+            }
+        }else{
+            ob = memoryLocationAdder(op1, PC + 1);
+        }
         if (forwardRef || format == 4) {
             if (format == 3) {
                 string op = hex2bin(opobcode);
                 op.at(10) = '0';
+                op.at(11) = '1';
                 opobcode = bin2hex(op);
             }
             format = 4;
+            int size = ob.length();
+            while(size < 5){
+                ob = "0" + ob;
+                ++size;
+            }
             return opobcode + ob;
         } else {
             ob = decToHexa(displacementCalculator(stoi(ob), PC));
