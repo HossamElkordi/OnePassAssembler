@@ -24,7 +24,7 @@ map<string, vector<string>> symTab;
 bool errorFlag=false;
 string FileCode;
 int format;
-
+bool exists;
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
@@ -135,6 +135,7 @@ int displacementCalculator(int address, int PC){
 }
 
 void labelAdder(string label,int location){
+    exists=true;
     if ( symTab.find(label) == symTab.end() ) {
         vector<string> tempo;
         tempo.push_back(to_string(location));
@@ -144,6 +145,7 @@ void labelAdder(string label,int location){
         vector<string> tempo;
         tempo.push_back(to_string(location));
         symTab[label]=tempo;
+        exists=false;
     }else {
         errorFlag=1;
         //this means that you used the same label twice which is forbidden
@@ -207,7 +209,12 @@ void updateObjectCode(string address, vector<string> appearences){
 
 string ReadFile(string path)
 {
+    string TextRecord="T";
     int PC=0;
+    int OldPC;
+    int LengthIndex=6;
+    string start="H";
+    bool NoPC=true;
     string first;
     ifstream CodeFile;
     string row;
@@ -215,6 +222,7 @@ string ReadFile(string path)
     list<string>::iterator ilist;
     vector<string>container;
     CodeFile.open(path, ios::in);
+    //TODO length of text record maximum ?
     while (getline(CodeFile, row))
     {
         if (row.find('.')!=std::string::npos)
@@ -226,7 +234,6 @@ string ReadFile(string path)
             transform(container.at(i).begin(), container.at(i).end(), container.at(i).begin(), ::toupper);
         if(OPTAB.find(container.at(0))!=OPTAB.end())
         {
-            //Label,operand,1st,2nd,pc
             string first=container.at(1),second="";
             if(container.at(1).find(',')!=std::string::npos)
             {
@@ -237,9 +244,14 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            FileCode+=getObjectCode(container.at(0),first,second,PC);
+            if(NoPC)
+            {
+                TextRecord+=to_string(PC);
+                NoPC=false;
+            }
+            TextRecord+=getObjectCode(container.at(0),first,second,PC);
             PC+=format;
-        } //TODO warnings and errors
+        }
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
             string first=container.at(1),second="";
@@ -253,7 +265,20 @@ string ReadFile(string path)
                 second = *ilist;
             }
             labelAdder(container.at(0),PC);
-            FileCode+=getObjectCode(container.at(1),first,second,PC);
+            if(!exists)
+            {
+                NoPC=false;
+                TextRecord+="\nT";
+                TextRecord.insert(LengthIndex,to_string(PC-OldPC));
+                LengthIndex=TextRecord.length();
+                OldPC=PC;
+            }
+            if(NoPC)
+            {
+                TextRecord+=to_string(PC);
+                NoPC=false;
+            }
+            TextRecord+=getObjectCode(container.at(1),first,second,PC);
             PC+=format;
         }
         else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
@@ -276,12 +301,22 @@ string ReadFile(string path)
         else if(DIRECTIVES.find(container.at(0))!=DIRECTIVES.end())
         {
             if(container.at(0)=="START")
+            {
                 PC=stoi(container.at(1));
+                start+=to_string(PC);
+                OldPC=PC;
+            }
+            else if(container.at(0)=="END")
+            {
+                start+=to_string(PC);
+                start.insert(1,container.at(1));
+            }
         }
         splitted.clear();
         container.clear();
     }
     CodeFile.close();
+    return start+TextRecord+"E";//TODO number next to E ? 
 }
 
 void split(string str, string seperator, list<string> * strings){
