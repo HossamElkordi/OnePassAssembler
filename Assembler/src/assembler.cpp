@@ -238,7 +238,7 @@ string ReadFile(string path)
                 second = *ilist;
             }
             PC+=format;
-            //myFunc("",container.at(0),first,second,PC);
+            FileCode+=getObjectCode(container.at(0),first,second,PC);
         } //TODO warnings and errors
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
@@ -253,7 +253,7 @@ string ReadFile(string path)
                 second = *ilist;
             }
             PC+=format;
-            //myFunc(container.at(0),container.at(1),first,second,PC);
+            FileCode+=getObjectCode(container.at(1),first,second,PC);
         }
         else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
         {
