@@ -18,8 +18,9 @@ unordered_map<string, string> OPTAB;
 unordered_map<string, string> REGTAB;
 unordered_set<string> DIRECTIVES;
 bool pc = true;
+bool forwardRef = false;
+bool extended = false;
 map<string, vector<string>> symTab;
-string current;
 bool errorFlag=false;
 string FileCode;
 int format;
@@ -28,40 +29,113 @@ int format;
 
 //============== Functions declarations ==================================
 
+string decToHexa(int n);
 void split(string str, string seperator, list<string> * strings);
 string getObjectOpcode(string opcode, string operand1, string operand2);
+string getObjectCode(string opcode, string op1, string op2, int pc);
+void updateObjectCode(string address, vector<string> appearences);
 string flags(string operand, const string& indexed);
 string hex2bin(string hexa);
 string bin2hex(string bin);
+string decToBinary(int n);
+string twosComplement(string bin);
 void setOPTAB();
 void setREGTAB();
 void setDirectives();
-void memoryLocationAdder(string identifier,int location);
+string memoryLocationAdder(string identifier,int location);
 void labelAdder(string label,int location);
 string ReadFile(string path);
-int displacementCalculator(int address);
+int displacementCalculator(int address, int PC);
 
 //============== End Of Functions declarations ===========================
 
 int main() {
     setOPTAB();
     setREGTAB();
-	setDirectives();
-	string path;
-	cout<<"Enter the path of the file"<<endl;
-    cin>>path;
-	ReadFile(path);
+    cout<<decToHexa(-8);
+//    labelAdder("ALPHA", 5);
+//    cout<<memoryLocationAdder("ALPHA", 10+1)<<endl;
+//    cout<<displacementCalculator(stoi(memoryLocationAdder("ALPHA", 10+1)), 10)<<endl;
+//    cout<<getObjectCode("LDA", "ALPHA", "", 10);
+//	setDirectives();
+//	string path;
+//	cout<<"Enter the path of the file"<<endl;
+//    cin>>path;
+//	ReadFile(path);
     return 0;
 }
+string twosComplement(string bin){
+    int n = bin.length();
+    int i;
 
-int displacementCalculator(int address){
-    if(abs(address-pc)>2048){
+    string ones, twos;
+    ones = twos = "";
+
+    for (i = 0; i < n; i++)
+        ones += (bin[i] == '0')? '1': '0';
+
+    twos = ones;
+    for (i = n - 1; i >= 0; i--){
+        if (ones[i] == '1')
+            twos[i] = '0';
+        else{
+            twos[i] = '1';
+            break;
+        }
+    }
+    if (i == -1)
+        twos = '1' + twos;
+    return twos;
+}
+string decToBinary(int n){
+    string binaryNum;
+
+    int i = 0;
+    while (n > 0) {
+        binaryNum = to_string(n % 2) + binaryNum;
+        n = n / 2;
+        i++;
+    }
+    int size = binaryNum.length();
+    while(size < 12){
+        binaryNum = "0" + binaryNum;
+        ++size;
+    }
+    return binaryNum;
+}
+
+string decToHexa(int n){
+    string hexa;
+    if(n < 0){
+        hexa = bin2hex(twosComplement(decToBinary(n)));
+    }else {
+        while (n != 0) {
+            int temp = 0;
+            temp = n % 16;
+            if (temp < 10) {
+                hexa = to_string(temp) + hexa;
+            } else {
+                hexa = char(temp + 55) + hexa;
+            }
+            n = n / 16;
+        }
+    }
+    int size = hexa.length();
+    while(size < 5){
+        hexa = "0" + hexa;
+        ++size;
+    }
+    return hexa;
+}
+
+int displacementCalculator(int address, int PC){
+    if(abs(address-(PC + 3))>2048){
         errorFlag= true;
         return 0;
 
     } else{
         pc=true;
-        return address-pc;
+        return address-(PC + 3);
     }
 }
 
@@ -71,23 +145,18 @@ void labelAdder(string label,int location){
         tempo.push_back(to_string(location));
         symTab[label]=tempo;
     }else if(symTab[label].front()=="*"){
-        //********************************************************************
-        //code to be added here
-        //code to iterate the vector and change the places left empty to the actual location
-        //_____________________________________________________________________
+        updateObjectCode(decToHexa(location), symTab[label]);
         vector<string> tempo;
         tempo.push_back(to_string(location));
         symTab[label]=tempo;
-
     }else {
         errorFlag=1;
         //this means that you used the same label twice which is forbidden
     }
 }
 
-void memoryLocationAdder(string identifier,int location){
+string memoryLocationAdder(string identifier,int location){
     if ( symTab.find(identifier) == symTab.end() || symTab[identifier].front()=="*") {
-        current=current+"XXXXX";
         if ( symTab.find(identifier) == symTab.end()){
             vector<string> temp;
             temp.push_back("*");
@@ -95,11 +164,12 @@ void memoryLocationAdder(string identifier,int location){
             symTab[identifier]=temp;
         }
         else{
-            symTab[identifier].push_back(to_string(location));
+            symTab[identifier].push_back(decToHexa(location));
         }
-
+        forwardRef = true;
+        return "XXXXX";
     } else {
-        current=current+symTab[identifier].back();
+        return symTab[identifier].back();
     }
 }
 
@@ -336,6 +406,7 @@ string getObjectOpcode(string opcode, string operand1, string operand2){
     string ob;
     if(opcode[0] == '+'){
         pc = false;
+        extended = true;
         opcode.erase(0, 1);
         format = 4;
     }
@@ -400,6 +471,9 @@ string flags(string operand, const string& indexed){
     if(operand[0] == '@'){
         nixbpe += "10";
     }else if(operand[0] == '#'){
+        if(operand[1] >= '0' && operand[1] <= '9'){
+            pc = false;
+        }
         nixbpe += "01";
     }else{
         nixbpe += "11";
@@ -408,9 +482,49 @@ string flags(string operand, const string& indexed){
     nixbpe += indexed;
 
     if(pc){
-        nixbpe += "010";
+        nixbpe += "01";
     }else{
-        nixbpe += "001";
+        nixbpe += "00";
+    }
+    if(extended){
+        nixbpe += "1";
+    }else{
+        nixbpe += "0";
     }
     return nixbpe;
+}
+
+string getObjectCode(string opcode, string op1, string op2, int PC) {
+    format = 0;
+    extended = false;
+    pc = true;
+    forwardRef = false;
+    string opobcode = getObjectOpcode(opcode, op1, op2);
+    if (errorFlag) {
+        return "";
+    }
+    if (format == 2) {
+        return opobcode;
+    }
+    if (format == 1) {
+        format = 3;
+        return opobcode + "0000";
+    }
+    string ob;
+    if (format == 3 || format == 4) {
+        ob = memoryLocationAdder(op1, PC + 1);
+        if (forwardRef || format == 4) {
+            if (format == 3) {
+                string op = hex2bin(opobcode);
+                op.at(10) = '0';
+                opobcode = bin2hex(op);
+            }
+            format = 4;
+            return opobcode + ob;
+        } else {
+            ob = decToHexa(displacementCalculator(stoi(ob), PC));
+            ob = ob.substr(2, 3);
+            return opobcode + ob;
+        }
+    }
 }
