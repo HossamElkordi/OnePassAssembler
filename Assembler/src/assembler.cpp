@@ -237,8 +237,8 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            PC+=format;
             FileCode+=getObjectCode(container.at(0),first,second,PC);
+            PC+=format;
         } //TODO warnings and errors
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
@@ -252,8 +252,9 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            PC+=format;
+            labelAdder(container.at(0),PC);
             FileCode+=getObjectCode(container.at(1),first,second,PC);
+            PC+=format;
         }
         else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
         {
