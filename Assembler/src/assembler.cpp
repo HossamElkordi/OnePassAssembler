@@ -247,6 +247,7 @@ string ReadFile(string path)
             if(NoPC)
             {
                 TextRecord+=to_string(PC);
+                LengthIndex=TextRecord.length();
                 NoPC=false;
             }
             TextRecord+=getObjectCode(container.at(0),first,second,PC);
@@ -270,12 +271,12 @@ string ReadFile(string path)
                 NoPC=false;
                 TextRecord+="\nT";
                 TextRecord.insert(LengthIndex,to_string(PC-OldPC));
-                LengthIndex=TextRecord.length();
                 OldPC=PC;
             }
             if(NoPC)
             {
                 TextRecord+=to_string(PC);
+                LengthIndex=TextRecord.length();
                 NoPC=false;
             }
             TextRecord+=getObjectCode(container.at(1),first,second,PC);
@@ -316,7 +317,7 @@ string ReadFile(string path)
         container.clear();
     }
     CodeFile.close();
-    return start+TextRecord+"E";//TODO number next to E ? 
+    return start+TextRecord+"E";//TODO number next to E ?
 }
 
 void split(string str, string seperator, list<string> * strings){
