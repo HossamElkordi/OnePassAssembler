@@ -24,7 +24,7 @@ map<string, vector<string>> symTab;
 bool errorFlag=false;
 string TextRecord;
 int format, startAdd;
-bool exists;
+bool exists,NoPC=true;;
 int PC=0, OldPC, LengthIndex=6;
 //============== End Of Global Variable ==================================
 
@@ -145,6 +145,7 @@ void labelAdder(string label,int location){
         TextRecord+="\n";
         TextRecord.insert(LengthIndex,decToHexa(PC - OldPC).substr(3, 2));
         updateObjectCode(decToHexa(location), symTab[label]);
+        NoPC=true;
         vector<string> tempo;
         tempo.push_back(to_string(location));
         symTab[label]=tempo;
@@ -208,13 +209,13 @@ void updateObjectCode(string address, vector<string> appearences){
     for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
         TextRecord += *ilist+"\n";
     }
+    //TextRecord=TextRecord.substr(0,TextRecord.length()-1);
 }
 
 string ReadFile(string path)
 {
     int size;
     string start="H", sAdd;
-    bool NoPC=true;
     string first,FirstExecutable;
     ifstream CodeFile;
     string row;
@@ -267,6 +268,7 @@ string ReadFile(string path)
             else
             {
                 NoPC= true;
+                TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
                 LengthOfTextRecord=0;
                 TextRecord+="\n";
                 goto LOOP;
@@ -289,7 +291,7 @@ string ReadFile(string path)
             LOOP2:if(!exists)
             {
                 NoPC=false;
-//                TextRecord+="\nT";
+                TextRecord+="T";
 //                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC));
                 exists=true;
                 OldPC=PC;
@@ -318,6 +320,7 @@ string ReadFile(string path)
             {
                 NoPC=true;
                 TextRecord+="\n";
+                TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
                 LengthOfTextRecord=0;
                 goto LOOP2;
             }
