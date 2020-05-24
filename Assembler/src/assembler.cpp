@@ -22,7 +22,7 @@ bool forwardRef = false;
 bool extended = false;
 map<string, vector<string>> symTab;
 bool errorFlag=false;
-string TextRecord,FirstExecutable;
+string TextRecord;
 int format, startAdd;
 bool exists;
 int PC=0, OldPC, LengthIndex=6;
@@ -215,7 +215,7 @@ string ReadFile(string path)
     int size;
     string start="H", sAdd;
     bool NoPC=true;
-    string first;
+    string first,FirstExecutable;
     ifstream CodeFile;
     string row;
     list<string> splitted;
@@ -325,7 +325,7 @@ string ReadFile(string path)
         }
         else if(DIRECTIVES.find(container.at(0))!=DIRECTIVES.end())
         {
-            if(container.at(0)=="START")
+            if(container.at(1)=="START")
             {
                 PC=stoi(container.at(1), 0, 16);
                 sAdd = container.at(1);
