@@ -144,6 +144,7 @@ void labelAdder(string label,int location){
     }else if(symTab[label].front()=="*"){
         TextRecord+="\n";
         TextRecord.insert(LengthIndex,decToHexa(PC - OldPC).substr(3, 2));
+        OldPC=PC;
         updateObjectCode(decToHexa(location), symTab[label]);
         NoPC=true;
         vector<string> tempo;
