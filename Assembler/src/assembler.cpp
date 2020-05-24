@@ -323,7 +323,7 @@ string ReadFile(string path)
                 PC += x;
             }
         }
-        else if(DIRECTIVES.find(container.at(0))!=DIRECTIVES.end())
+        else if(DIRECTIVES.find(container.at(0))!=DIRECTIVES.end()||DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
         {
             if(container.at(1)=="START")
             {
