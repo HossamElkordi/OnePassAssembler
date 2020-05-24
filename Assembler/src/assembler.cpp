@@ -22,9 +22,10 @@ bool forwardRef = false;
 bool extended = false;
 map<string, vector<string>> symTab;
 bool errorFlag=false;
-string FileCode;
-int format;
+string TextRecord;
+int format, startAdd;
 bool exists;
+int PC=0, OldPC, LengthIndex=6;
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
@@ -54,9 +55,9 @@ int main() {
     setREGTAB();
 	setDirectives();
 	string path;
-	cout<<"Enter the path of the file"<<endl;
-    cin>>path;
-	ReadFile(path);
+//	cout<<"Enter the path of the file"<<endl;
+//    cin>>path;
+	cout<<ReadFile("C:\\Users\\Geek\\CLionProjects\\OnePassAssembler\\SOURCE.txt");
     return 0;
 }
 string twosComplement(string bin){
@@ -141,6 +142,8 @@ void labelAdder(string label,int location){
         tempo.push_back(to_string(location));
         symTab[label]=tempo;
     }else if(symTab[label].front()=="*"){
+        TextRecord+="\n";
+        TextRecord.insert(LengthIndex,decToHexa(PC - OldPC).substr(3, 2));
         updateObjectCode(decToHexa(location), symTab[label]);
         vector<string> tempo;
         tempo.push_back(to_string(location));
@@ -157,7 +160,7 @@ string memoryLocationAdder(string identifier,int location){
         if ( symTab.find(identifier) == symTab.end()){
             vector<string> temp;
             temp.push_back("*");
-            temp.push_back(to_string(location));
+            temp.push_back(decToHexa(location));
             symTab[identifier]=temp;
         }
         else{
@@ -173,7 +176,7 @@ string memoryLocationAdder(string identifier,int location){
 void updateObjectCode(string address, vector<string> appearences){
     list<string> textRecords;
     list<string>::iterator ilist;
-    split(FileCode, "\n", &textRecords);
+    split(TextRecord, "\n", &textRecords);
     int reqAddress, start, length, startAdd, endAdd, i;
     string before, after;
     for(string app : appearences){
@@ -181,10 +184,10 @@ void updateObjectCode(string address, vector<string> appearences){
         reqAddress = stoi(app, 0, 16);
         for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
             if (ilist->at(0) == 'T') {
-                start = stoi(ilist->substr(1, 0), 0, 16);
+                start = stoi(ilist->substr(1, 6), 0, 16);
                 length = stoi(ilist->substr(7, 2), 0, 16);
                 if(reqAddress < (start + length)){
-                    startAdd = (2 * (reqAddress - start)) + 9;
+                    startAdd = (2 * (reqAddress - start)) + 10;
                     endAdd = startAdd + 4; // 5 digits address
                     i = address.length() - 1;
                     while(i >= 0){
@@ -201,19 +204,16 @@ void updateObjectCode(string address, vector<string> appearences){
             }
         }
     }
-    FileCode = "";
+    TextRecord = "";
     for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
-        FileCode += *ilist;
+        TextRecord += *ilist;
     }
 }
 
 string ReadFile(string path)
 {
-    string TextRecord="T";
-    int PC=0;
-    int OldPC;
-    int LengthIndex=6;
-    string start="H";
+    int size;
+    string start="H", sAdd;
     bool NoPC=true;
     string first;
     ifstream CodeFile;
@@ -246,7 +246,13 @@ string ReadFile(string path)
             }
             if(NoPC)
             {
-                TextRecord+=to_string(PC);
+                sAdd = decToHexa(PC);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd = "0" + sAdd;
+                    ++size;
+                }
+                TextRecord+=("T"+sAdd);
                 LengthIndex=TextRecord.length();
                 NoPC=false;
             }
@@ -255,11 +261,11 @@ string ReadFile(string path)
         }
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
         {
-            string first=container.at(1),second="";
+            string first=container.at(2),second="";
             if(container.at(2).find(',')!=std::string::npos)
             {
                 list<string>temp;
-                split(container.at(1),",",&temp);
+                split(container.at(2),",",&temp);
                 ilist = temp.begin();
                 first = *ilist;
                 advance(ilist, 1);
@@ -269,13 +275,19 @@ string ReadFile(string path)
             if(!exists)
             {
                 NoPC=false;
-                TextRecord+="\nT";
-                TextRecord.insert(LengthIndex,to_string(PC-OldPC));
+//                TextRecord+="\nT";
+//                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC));
                 OldPC=PC;
             }
             if(NoPC)
             {
-                TextRecord+=to_string(PC);
+                sAdd = decToHexa(PC);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd = "0" + sAdd;
+                    ++size;
+                }
+                TextRecord+=("T"+sAdd);
                 LengthIndex=TextRecord.length();
                 NoPC=false;
             }
@@ -287,6 +299,7 @@ string ReadFile(string path)
             string str = container.at(1);
             stringstream Str2Int(container.at(2));
             int x = 0;
+            labelAdder(container.at(0), PC);
             if((str.compare("WORD")) == 0){
                 PC += 3;
             }else if((str.compare("RESW")) == 0){
@@ -294,7 +307,7 @@ string ReadFile(string path)
                 PC += (3*x);
             }else if((str.compare("BYTE")) == 0){
                 PC += 1;
-            }else if((str.compare("RESBYTE")) == 0){
+            }else if((str.compare("RESBYTE")) == 0) {
                 Str2Int >> x;
                 PC += x;
             }
@@ -303,21 +316,41 @@ string ReadFile(string path)
         {
             if(container.at(0)=="START")
             {
-                PC=stoi(container.at(1));
-                start+=to_string(PC);
+                PC=stoi(container.at(1), 0, 16);
+                sAdd = container.at(1);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd = "0" + sAdd;
+                    ++size;
+                }
+                start+=sAdd;
                 OldPC=PC;
+                startAdd = PC;
             }
             else if(container.at(0)=="END")
             {
-                start+=to_string(PC);
-                start.insert(1,container.at(1));
+                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC).substr(3, 2));
+                sAdd = decToHexa(PC - startAdd);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd = "0" + sAdd;
+                    ++size;
+                }
+                start+=sAdd;
+                sAdd = container.at(1);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd += " " ;
+                    ++size;
+                }
+                start.insert(1,sAdd);
             }
         }
         splitted.clear();
         container.clear();
     }
     CodeFile.close();
-    return start+TextRecord+"E";//TODO number next to E ?
+    return start+"\n"+TextRecord+"\nE";//TODO number next to E ?
 }
 
 void split(string str, string seperator, list<string> * strings){

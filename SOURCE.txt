@@ -1,0 +1,11 @@
+         START   1000
+ZEROARR  LDX    #0
+         LDS    #0
+LOOP     STS     ZARR,X
+         RMO     X,A
+         ADD    #3
+         RMO     A,X
+         COMP   #300
+ZARR     RESW    100
+         LDX    #0
+         END     ZEROARR
