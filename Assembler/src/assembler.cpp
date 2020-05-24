@@ -206,7 +206,7 @@ void updateObjectCode(string address, vector<string> appearences){
     }
     TextRecord = "";
     for(ilist = textRecords.begin(); ilist != textRecords.end(); ++ilist){
-        TextRecord += *ilist;
+        TextRecord += *ilist+"\n";
     }
 }
 
@@ -222,7 +222,7 @@ string ReadFile(string path)
     list<string>::iterator ilist;
     vector<string>container;
     CodeFile.open(path, ios::in);
-    //TODO length of text record maximum ?
+    int LengthOfTextRecord=0;
     while (getline(CodeFile, row))
     {
         if (row.find('.')!=std::string::npos)
@@ -230,8 +230,8 @@ string ReadFile(string path)
         split(row, "\\s+", &splitted);
         for (ilist = splitted.begin(); ilist != splitted.end(); ++ilist)
             container.push_back(*ilist);
-        for(int i=0;i<container.size();++i)
-            transform(container.at(i).begin(), container.at(i).end(), container.at(i).begin(), ::toupper);
+        for(auto & i : container)
+            transform(i.begin(), i.end(), i.begin(), ::toupper);
         if(OPTAB.find(container.at(0))!=OPTAB.end())
         {
             string first=container.at(1),second="";
@@ -244,7 +244,7 @@ string ReadFile(string path)
                 advance(ilist, 1);
                 second = *ilist;
             }
-            if(NoPC)
+            LOOP:if(NoPC)
             {
                 sAdd = decToHexa(PC);
                 size = sAdd.length();
@@ -258,7 +258,19 @@ string ReadFile(string path)
                     FirstExecutable=sAdd;
                 NoPC=false;
             }
-            TextRecord+=getObjectCode(container.at(0),first,second,PC);
+            string TempObj=getObjectCode(container.at(0),first,second,PC);
+            if(LengthOfTextRecord+TempObj.length()<=60)
+            {
+                TextRecord+=TempObj;
+                LengthOfTextRecord+=TempObj.length();
+            }
+            else
+            {
+                NoPC= true;
+                LengthOfTextRecord=0;
+                TextRecord+="\n";
+                goto LOOP;
+            }
             PC+=format;
         }
         else if(OPTAB.find(container.at(1))!=OPTAB.end())
@@ -274,11 +286,12 @@ string ReadFile(string path)
                 second = *ilist;
             }
             labelAdder(container.at(0),PC);
-            if(!exists)
+            LOOP2:if(!exists)
             {
                 NoPC=false;
 //                TextRecord+="\nT";
 //                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC));
+                exists=true;
                 OldPC=PC;
             }
             if(NoPC)
@@ -295,7 +308,19 @@ string ReadFile(string path)
                 LengthIndex=TextRecord.length();
                 NoPC=false;
             }
-            TextRecord+=getObjectCode(container.at(1),first,second,PC);
+            string TempObj=getObjectCode(container.at(1),first,second,PC);
+            if(LengthOfTextRecord+TempObj.length()<=60)
+            {
+                TextRecord+=TempObj;
+                LengthOfTextRecord+=TempObj.length();
+            }
+            else
+            {
+                NoPC=true;
+                TextRecord+="\n";
+                LengthOfTextRecord=0;
+                goto LOOP2;
+            }
             PC+=format;
         }
         else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end()&&container.at(1)!="START")
@@ -304,13 +329,13 @@ string ReadFile(string path)
             stringstream Str2Int(container.at(2));
             int x = 0;
             labelAdder(container.at(0), PC);
-            if(!exists)
+            /*if(!exists)
             {
                 NoPC=false;
 //                TextRecord+="\nT";
 //                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC));
                 OldPC=PC;
-            }
+            }*/
             if((str.compare("WORD")) == 0){
                 PC += 3;
             }else if((str.compare("RESW")) == 0){
