@@ -298,7 +298,7 @@ string ReadFile(string path)
             TextRecord+=getObjectCode(container.at(1),first,second,PC);
             PC+=format;
         }
-        else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
+        else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end()&&container.at(1)!="START")
         {
             string str = container.at(1);
             stringstream Str2Int(container.at(2));
@@ -327,8 +327,8 @@ string ReadFile(string path)
         {
             if(container.at(1)=="START")
             {
-                PC=stoi(container.at(1), 0, 16);
-                sAdd = container.at(1);
+                PC=stoi(container.at(2), 0, 16);
+                sAdd = container.at(2);
                 size = sAdd.length();
                 while(size < 6){
                     sAdd = "0" + sAdd;
