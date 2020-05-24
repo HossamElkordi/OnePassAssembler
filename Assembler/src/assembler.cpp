@@ -25,7 +25,7 @@ bool errorFlag=false;
 string TextRecord;
 int format, startAdd;
 bool exists,NoPC=true;;
-int PC=0, OldPC, LengthIndex=6;
+int PC=0, OldPC, LengthIndex=6,LengthOfTextRecord=0;;
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
@@ -143,7 +143,8 @@ void labelAdder(string label,int location){
         symTab[label]=tempo;
     }else if(symTab[label].front()=="*"){
         TextRecord+="\n";
-        TextRecord.insert(LengthIndex,decToHexa(PC - OldPC).substr(3, 2));
+        TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3, 2));
+        LengthOfTextRecord=0;
         OldPC=PC;
         updateObjectCode(decToHexa(location), symTab[label]);
         NoPC=true;
@@ -224,7 +225,6 @@ string ReadFile(string path)
     list<string>::iterator ilist;
     vector<string>container;
     CodeFile.open(path, ios::in);
-    int LengthOfTextRecord=0;
     while (getline(CodeFile, row))
     {
         if (row.find('.')!=std::string::npos)
@@ -254,6 +254,7 @@ string ReadFile(string path)
                     sAdd = "0" + sAdd;
                     ++size;
                 }
+                LengthOfTextRecord=0;
                 TextRecord+=("T"+sAdd);
                 LengthIndex=TextRecord.length();
                 if(FirstExecutable.empty())
@@ -306,6 +307,7 @@ string ReadFile(string path)
                     ++size;
                 }
                 TextRecord+=("T"+sAdd);
+                LengthOfTextRecord=0;
                 if(FirstExecutable.empty())
                     FirstExecutable=sAdd;
                 LengthIndex=TextRecord.length();
@@ -369,7 +371,7 @@ string ReadFile(string path)
             }
             else if(container.at(0)=="END")
             {
-                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC).substr(3, 2));
+                TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3, 2));
                 sAdd = decToHexa(PC - startAdd);
                 size = sAdd.length();
                 while(size < 6){
