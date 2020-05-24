@@ -22,7 +22,7 @@ bool forwardRef = false;
 bool extended = false;
 map<string, vector<string>> symTab;
 bool errorFlag=false;
-string TextRecord;
+string TextRecord,FirstExecutable;
 int format, startAdd;
 bool exists;
 int PC=0, OldPC, LengthIndex=6;
@@ -57,7 +57,7 @@ int main() {
 	string path;
 //	cout<<"Enter the path of the file"<<endl;
 //    cin>>path;
-	cout<<ReadFile("C:\\Users\\Geek\\CLionProjects\\OnePassAssembler\\SOURCE.txt");
+	cout<<ReadFile("/home/mina/JetBrains Project/Clion/onepassassembler/SOURCE.txt");
     return 0;
 }
 string twosComplement(string bin){
@@ -254,6 +254,8 @@ string ReadFile(string path)
                 }
                 TextRecord+=("T"+sAdd);
                 LengthIndex=TextRecord.length();
+                if(FirstExecutable.empty())
+                    FirstExecutable=sAdd;
                 NoPC=false;
             }
             TextRecord+=getObjectCode(container.at(0),first,second,PC);
@@ -288,6 +290,8 @@ string ReadFile(string path)
                     ++size;
                 }
                 TextRecord+=("T"+sAdd);
+                if(FirstExecutable.empty())
+                    FirstExecutable=sAdd;
                 LengthIndex=TextRecord.length();
                 NoPC=false;
             }
@@ -300,6 +304,13 @@ string ReadFile(string path)
             stringstream Str2Int(container.at(2));
             int x = 0;
             labelAdder(container.at(0), PC);
+            if(!exists)
+            {
+                NoPC=false;
+//                TextRecord+="\nT";
+//                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC));
+                OldPC=PC;
+            }
             if((str.compare("WORD")) == 0){
                 PC += 3;
             }else if((str.compare("RESW")) == 0){
@@ -350,7 +361,7 @@ string ReadFile(string path)
         container.clear();
     }
     CodeFile.close();
-    return start+"\n"+TextRecord+"\nE";//TODO number next to E ?
+    return start+"\n"+TextRecord+"\nE"+FirstExecutable;
 }
 
 void split(string str, string seperator, list<string> * strings){
