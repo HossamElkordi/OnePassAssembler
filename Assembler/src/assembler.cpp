@@ -55,6 +55,7 @@ void equHandle(string name, string value);
 void orgHandle(string operand);
 bool checkNumericString(string s);
 bool isExpression(string operand);
+string expressionCalc(string operand);
 void WriteFile(string objectFile);
 //============== End Of Functions declarations ===========================
 
@@ -277,6 +278,12 @@ string ReadFile(string path)
                     FirstExecutable=sAdd;
                 NoPC=false;
             }
+            if (isExpression(container.at(1)))
+            {
+                string temp=expressionCalc(container.at(1));
+                if(!temp.empty())
+                    first=temp;
+            }
             string TempObj=getObjectCode(container.at(0),first,second,PC);
             if(LengthOfTextRecord+TempObj.length()<=60)
             {
@@ -327,6 +334,12 @@ string ReadFile(string path)
                     FirstExecutable=sAdd;
                 LengthIndex=TextRecord.length();
                 NoPC=false;
+            }
+            if (isExpression(container.at(2)))
+            {
+                string temp=expressionCalc(container.at(2));
+                if(!temp.empty())
+                    first=temp;
             }
             string TempObj=getObjectCode(container.at(1),first,second,PC);
             if(LengthOfTextRecord+TempObj.length()<=60)
