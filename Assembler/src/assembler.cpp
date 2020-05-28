@@ -376,6 +376,46 @@ string ReadFile(string path)
             if((str.compare("WORD")) == 0){
                 if (isExpression(container.at(2)))
                     container.at(2)=expressionCalc(container.at(2));
+                else
+                {
+                    LOOP5:if(NoPC)
+                {
+                    sAdd = decToHexa(PC);
+                    size = sAdd.length();
+                    while(size < 6){
+                        sAdd = "0" + sAdd;
+                        ++size;
+                    }
+                    TextRecord+=("T"+sAdd);
+                    LengthOfTextRecord=0;
+                    if(FirstExecutable.empty())
+                        FirstExecutable=sAdd;
+                    LengthIndex=TextRecord.length();
+                    NoPC=false;
+                }
+                    int value=0;
+                    for (char c:container.at(2))
+                    {
+                        value+=c-'0';
+                        value*=10;
+                    }
+                    string temp=decToHexa(value/10);
+                    while(temp.size()<6)
+                        temp='0'+temp;
+                    if(LengthOfTextRecord+temp.length()<=60)
+                    {
+                        TextRecord+=temp;
+                        LengthOfTextRecord+=temp.length();
+                    }
+                    else
+                    {
+                        NoPC=true;
+                        TextRecord+="\n";
+                        TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
+                        LengthOfTextRecord=0;
+                        goto LOOP5;
+                    }
+                }
                 if (lcCounter) lctr += 3; else PC += 3;
             }else if((str.compare("RESW")) == 0){
                 if (isExpression(container.at(2)))

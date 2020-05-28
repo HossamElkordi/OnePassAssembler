@@ -1,5 +1,5 @@
 ZEROARR  START   1000
-ZARR0     byte    x'ABC'
+ZARR0     Word    500
           LDX    #0
          LDS    #0
 LOOP     STS     ZARR,X
