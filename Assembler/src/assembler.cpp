@@ -282,7 +282,7 @@ string ReadFile(string path)
             {
                 string temp=expressionCalc(container.at(1));
                 if(!temp.empty()) {
-                    first=temp;
+                    first="#"+temp;
                     exp = true;
                 }
             }
@@ -341,7 +341,7 @@ string ReadFile(string path)
             {
                 string temp=expressionCalc(container.at(2));
                 if(!temp.empty()) {
-                    first=temp;
+                    first="#"+temp;
                     exp = true;
                 }
             }
