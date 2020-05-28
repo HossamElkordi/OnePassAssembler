@@ -364,7 +364,6 @@ string ReadFile(string path)
         else if(DIRECTIVES.find(container.at(1))!=DIRECTIVES.end()&&container.at(1)!="START")
         {
             string str = container.at(1);
-            stringstream Str2Int(container.at(2));
             int x = 0;
             labelAdder(container.at(0), (lcCounter) ? lctr : PC);
             /*if(!exists)
@@ -375,16 +374,33 @@ string ReadFile(string path)
                 OldPC=PC;
             }*/
             if((str.compare("WORD")) == 0){
+                if (isExpression(container.at(2)))
+                    container.at(2)=expressionCalc(container.at(2));
+                stringstream Str2Int(container.at(2));
+                Str2Int >> x;
                 if (lcCounter) lctr += 3; else PC += 3;
             }else if((str.compare("RESW")) == 0){
+                if (isExpression(container.at(2)))
+                    container.at(2)=expressionCalc(container.at(2));
+                stringstream Str2Int(container.at(2));
                 Str2Int >> x;
                 if (lcCounter) lctr += (3*x); else PC += (3*x);
             }else if((str.compare("BYTE")) == 0){
+                if (isExpression(container.at(2)))
+                    container.at(2)=expressionCalc(container.at(2));
+                stringstream Str2Int(container.at(2));
+                Str2Int >> x;
                 if (lcCounter) lctr += 1; else PC += 1;
             }else if((str.compare("RESBYTE")) == 0) {
+                if (isExpression(container.at(2)))
+                    container.at(2)=expressionCalc(container.at(2));
+                stringstream Str2Int(container.at(2));
+                Str2Int >> x;
                 Str2Int >> x;
                 if (lcCounter) lctr += x; else PC += x;
             }else if(container.at(1)=="EQU"){
+                if (isExpression(container.at(2)))
+                    container.at(2)=expressionCalc(container.at(2));
                 equHandle(container.at(0), container.at(2));
             }
         }
