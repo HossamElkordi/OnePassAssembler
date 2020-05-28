@@ -65,8 +65,8 @@ int main() {
 	setDirectives();
 	string path;
 	cout<<"Enter the absolute path of the assembly file"<<endl;
-    //cin>>path;
-    string obj=ReadFile("/home/mina/JetBrains Project/Clion/onepassassembler/SOURCE.txt");
+    getline(cin,path);
+    string obj=ReadFile(path);
     WriteFile(obj);
     return 0;
 }
