@@ -7,5 +7,10 @@ LOOP     STS     ZARR,X
          RMO     A,X
          COMP   #300
 ZARR     RESW    100
-         LDX    #0
+ALPHA    EQU     ZARR
+         STS     ALPHA,X
+         ORG     ALPHA
+BETA     RESW    5
+GAMMA    RESB    20
+         STS     GAMMA,X
          END     ZEROARR

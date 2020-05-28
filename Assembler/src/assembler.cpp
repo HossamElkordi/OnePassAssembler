@@ -25,7 +25,10 @@ bool errorFlag=false;
 string TextRecord;
 int format, startAdd;
 bool exists,NoPC=true;;
-int PC=0, OldPC, LengthIndex=6,LengthOfTextRecord=0;;
+int PC=0, OldPC, LengthIndex=6,LengthOfTextRecord=0;
+bool lcCounter = false;
+int lctr;
+
 //============== End Of Global Variable ==================================
 
 //============== Functions declarations ==================================
@@ -47,6 +50,10 @@ string memoryLocationAdder(string identifier,int location);
 void labelAdder(string label,int location);
 string ReadFile(string path);
 int displacementCalculator(int address, int PC);
+void equHandle(string name, string value);
+void orgHandle(string operand);
+bool checkNumericString(string s);
+bool isExpression(string operand);
 
 //============== End Of Functions declarations ===========================
 
@@ -57,7 +64,7 @@ int main() {
 	string path;
 //	cout<<"Enter the path of the file"<<endl;
 //    cin>>path;
-	cout<<ReadFile("/home/mina/JetBrains Project/Clion/onepassassembler/SOURCE.txt");
+	cout<<ReadFile("C:\\Users\\Geek\\CLionProjects\\OnePassAssembler\\SOURCE.txt");
     return 0;
 }
 string twosComplement(string bin){
@@ -334,7 +341,7 @@ string ReadFile(string path)
             string str = container.at(1);
             stringstream Str2Int(container.at(2));
             int x = 0;
-            labelAdder(container.at(0), PC);
+            labelAdder(container.at(0), (lcCounter) ? lctr : PC);
             /*if(!exists)
             {
                 NoPC=false;
@@ -343,15 +350,17 @@ string ReadFile(string path)
                 OldPC=PC;
             }*/
             if((str.compare("WORD")) == 0){
-                PC += 3;
+                if (lcCounter) lctr += 3; else PC += 3;
             }else if((str.compare("RESW")) == 0){
                 Str2Int >> x;
-                PC += (3*x);
+                if (lcCounter) lctr += (3*x); else PC += (3*x);
             }else if((str.compare("BYTE")) == 0){
-                PC += 1;
+                if (lcCounter) lctr += 1; else PC += 1;
             }else if((str.compare("RESBYTE")) == 0) {
                 Str2Int >> x;
-                PC += x;
+                if (lcCounter) lctr += x; else PC += x;
+            }else if(container.at(1)=="EQU"){
+                equHandle(container.at(0), container.at(2));
             }
         }
         else if(DIRECTIVES.find(container.at(0))!=DIRECTIVES.end()||DIRECTIVES.find(container.at(1))!=DIRECTIVES.end())
@@ -386,6 +395,8 @@ string ReadFile(string path)
                     ++size;
                 }
                 start.insert(1,sAdd);
+            }else if(container.at(0) == "ORG"){
+                orgHandle((container.size() == 1) ? "" : container.at(1));
             }
         }
         splitted.clear();
@@ -393,6 +404,162 @@ string ReadFile(string path)
     }
     CodeFile.close();
     return start+"\n"+TextRecord+"\nE"+FirstExecutable;
+}
+
+string expressionCalc(string operand){
+    list<string> operands;
+    list<string>::iterator ilist;
+    string a, b;
+    if(operand.find('+') != string::npos){
+        split(operand, "+", &operands);
+        ilist = operands.begin();
+        a = *ilist;
+        advance(ilist, 1);
+        b = *ilist;
+        if(checkNumericString(a) && checkNumericString(b)){
+            return to_string(stoi(a) + stoi(b));
+        }else if(checkNumericString(a) && !checkNumericString(b)){
+            if(symTab.find(b) != symTab.end()){
+                if(symTab[b].front() == "*"){
+                    errorFlag = true;
+                    return "";
+                }
+                return to_string(stoi(a) + stoi(symTab[b].front()));
+            }else{
+                errorFlag = true;
+                return "";
+            }
+        }else if(!checkNumericString(a) && checkNumericString(b)){
+            if(symTab.find(a) != symTab.end()){
+                if(symTab[a].front() == "*"){
+                    errorFlag = true;
+                    return "";
+                }
+                return to_string(stoi(b) + stoi(symTab[a].front()));
+            }else{
+                errorFlag = true;
+                return "";
+            }
+        }else{
+            errorFlag = true;
+            return "";
+        }
+    }else if(operand.find('-') != string::npos){
+        split(operand, "-", &operands);
+        ilist = operands.begin();
+        a = *ilist;
+        advance(ilist, 1);
+        b = *ilist;
+        if(checkNumericString(a) && checkNumericString(b)){
+            return to_string(stoi(a) - stoi(b));
+        }else if(checkNumericString(a) && !checkNumericString(b)){
+            if(symTab.find(b) != symTab.end()){
+                if(symTab[b].front() == "*"){
+                    errorFlag = true;
+                    return "";
+                }
+                return to_string(stoi(a) - stoi(symTab[b].front()));
+            }else{
+                errorFlag = true;
+                return "";
+            }
+        }else if(!checkNumericString(a) && checkNumericString(b)){
+            if(symTab.find(a) != symTab.end()){
+                if(symTab[a].front() == "*"){
+                    errorFlag = true;
+                    return "";
+                }
+                return to_string(stoi(b) - stoi(symTab[a].front()));
+            }else{
+                errorFlag = true;
+                return "";
+            }
+        }else{
+            if(symTab.find(a) == symTab.end() || symTab.find(b) == symTab.end() ||
+            symTab[a].front() == "*" || symTab[b].front() == "*"){
+                errorFlag = true;
+                return "";
+            }
+            return to_string(stoi(symTab[a].front()) - stoi(symTab[b].front()));
+        }
+    }else if(operand.find('*') != string::npos){
+        split(operand, "*", &operands);
+        ilist = operands.begin();
+        a = *ilist;
+        advance(ilist, 1);
+        b = *ilist;
+        if(checkNumericString(a) && checkNumericString(b)) return to_string(stoi(a) * stoi(b));
+        errorFlag = true;
+        return "";
+    }else if(operand.find('/') != string::npos){
+        split(operand, "/", &operands);
+        ilist = operands.begin();
+        a = *ilist;
+        advance(ilist, 1);
+        b = *ilist;
+        if(checkNumericString(a) && checkNumericString(b)){
+            if(stoi(b) == 0){
+                errorFlag = true;
+                return "";
+            }
+            return to_string(stoi(a) / stoi(b));
+        }
+        errorFlag = true;
+        return "";
+    }
+}
+
+bool isExpression(string operand){
+    if(operand.find('/') != string::npos || operand.find('*') != string::npos
+    || operand.find('+') != string::npos || operand.find('-') != string::npos){
+        return true;
+    }
+    return false;
+}
+
+bool checkNumericString(string s){
+    for(int i = 0; i < s.length(); i++) {
+        if (!isdigit(s.at(i))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+void orgHandle(string operand){
+    if(operand == ""){
+        lcCounter = false;
+    }else{
+        map<string, vector<string>>::iterator imap = symTab.find(operand);
+        if(imap == symTab.end() || symTab[operand].front() == "*"){
+            errorFlag = true;
+            return;
+        }
+        lcCounter = true;
+        lctr = stoi(symTab[operand].front());
+    }
+}
+
+void equHandle(string name, string value){
+    map<string, vector<string>>::iterator imap = symTab.find(value);
+    if(imap != symTab.end()){
+        if(symTab[value].front() == "*"){
+            errorFlag = true;
+        }else {
+            symTab[name] = symTab[value];
+        }
+    }else{
+        errorFlag = false;
+        for(int i = 0; i < value.length(); i++) {
+            if (!isdigit(value.at(i))) {
+                errorFlag = true;
+                break;
+            }
+        }
+        if(!errorFlag){
+            symTab[name] = symTab[value];
+        }
+    }
 }
 
 void split(string str, string seperator, list<string> * strings){
