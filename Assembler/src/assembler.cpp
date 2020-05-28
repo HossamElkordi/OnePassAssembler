@@ -64,10 +64,10 @@ int main() {
     setREGTAB();
 	setDirectives();
 	string path;
-//	cout<<"Enter the absolute path of the assembly file"<<endl;
-//    cin>>path;
-    string obj=ReadFile("C:\\Users\\Geek\\CLionProjects\\OnePassAssembler\\SOURCE.txt");
-//    WriteFile(obj);
+	cout<<"Enter the absolute path of the assembly file"<<endl;
+    cin>>path;
+    string obj=ReadFile(path);
+    WriteFile(obj);
     return 0;
 }
 string twosComplement(string bin){
