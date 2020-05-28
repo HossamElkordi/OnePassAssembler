@@ -65,8 +65,8 @@ int main() {
 	setDirectives();
 	string path;
 	cout<<"Enter the absolute path of the assembly file"<<endl;
-    cin>>path;
-    string obj=ReadFile(path);
+    //cin>>path;
+    string obj=ReadFile("/home/mina/JetBrains Project/Clion/onepassassembler/SOURCE.txt");
     WriteFile(obj);
     return 0;
 }
@@ -388,9 +388,24 @@ string ReadFile(string path)
                     container.at(2)=expressionCalc(container.at(2));
                 else if(container.at(2).at(0)=='C')
                 {
+                    LOOP3:if(NoPC)
+                    {
+                        sAdd = decToHexa(PC);
+                        size = sAdd.length();
+                        while(size < 6){
+                            sAdd = "0" + sAdd;
+                            ++size;
+                        }
+                        TextRecord+=("T"+sAdd);
+                        LengthOfTextRecord=0;
+                        if(FirstExecutable.empty())
+                            FirstExecutable=sAdd;
+                        LengthIndex=TextRecord.length();
+                        NoPC=false;
+                    }
                     string temp;
-                    for (char c:container.at(2).substr(2,container.at(2).size()-1))
-                        temp+=decToHexa(c);
+                    for (char c:container.at(2).substr(2,container.at(2).size()-3))
+                        temp+=decToHexa(c).substr(3,6);
                     if(LengthOfTextRecord+temp.length()<=60)
                     {
                         TextRecord+=temp;
@@ -398,28 +413,31 @@ string ReadFile(string path)
                     }
                     else
                     {
+                        NoPC=true;
                         TextRecord+="\n";
                         TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
                         LengthOfTextRecord=0;
-                        sAdd = decToHexa(PC);
-                        size = sAdd.length();
-                        while(size < 6){
-                            sAdd = "0" + sAdd;
-                            ++size;
-                        }
-                        LengthOfTextRecord=0;
-                        TextRecord+=("T"+sAdd);
-                        LengthIndex=TextRecord.length();
-                        NoPC=false;
-                        TextRecord+=temp;
-                        LengthOfTextRecord+=temp.length();
+                        goto LOOP3;
                     }
                 }
                 else if(container.at(2).at(0)=='X')
                 {
-                    string temp;
-                    for (char c:container.at(2).substr(2,container.at(2).size()-1))
-                        temp+=c;
+                    LOOP4:if(NoPC)
+                {
+                    sAdd = decToHexa(PC);
+                    size = sAdd.length();
+                    while(size < 6){
+                        sAdd = "0" + sAdd;
+                        ++size;
+                    }
+                    TextRecord+=("T"+sAdd);
+                    LengthOfTextRecord=0;
+                    if(FirstExecutable.empty())
+                        FirstExecutable=sAdd;
+                    LengthIndex=TextRecord.length();
+                    NoPC=false;
+                }
+                    string temp=container.at(2).substr(2,container.at(2).size()-3);
                     if(LengthOfTextRecord+temp.length()<=60)
                     {
                         TextRecord+=temp;
@@ -427,21 +445,11 @@ string ReadFile(string path)
                     }
                     else
                     {
+                        NoPC=true;
                         TextRecord+="\n";
                         TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
                         LengthOfTextRecord=0;
-                        sAdd = decToHexa(PC);
-                        size = sAdd.length();
-                        while(size < 6){
-                            sAdd = "0" + sAdd;
-                            ++size;
-                        }
-                        LengthOfTextRecord=0;
-                        TextRecord+=("T"+sAdd);
-                        LengthIndex=TextRecord.length();
-                        NoPC=false;
-                        TextRecord+=temp;
-                        LengthOfTextRecord+=temp.length();
+                        goto LOOP4;
                     }
                 }
                 if (lcCounter) lctr += 1; else PC += 1;
