@@ -25,9 +25,10 @@ bool errorFlag=false;
 string TextRecord;
 int format, startAdd;
 bool exists,NoPC=true;;
-int PC=0, OldPC, LengthIndex=6,LengthOfTextRecord=0;
+int PC=0, LengthIndex=6,LengthOfTextRecord=0;
 bool lcCounter = false;
-int lctr;
+int lctr,line=1;
+string ErrorLines;
 
 //============== End Of Global Variable ==================================
 
@@ -54,7 +55,7 @@ void equHandle(string name, string value);
 void orgHandle(string operand);
 bool checkNumericString(string s);
 bool isExpression(string operand);
-
+void WriteFile(string objectFile);
 //============== End Of Functions declarations ===========================
 
 int main() {
@@ -62,9 +63,10 @@ int main() {
     setREGTAB();
 	setDirectives();
 	string path;
-//	cout<<"Enter the path of the file"<<endl;
-//    cin>>path;
-	cout<<ReadFile("C:\\Users\\Geek\\CLionProjects\\OnePassAssembler\\SOURCE.txt");
+	cout<<"Enter the absolute path of the assembly file"<<endl;
+    cin>>path;
+    string obj=ReadFile("/home/mina/JetBrains Project/Clion/onepassassembler/SOURCE.txt");
+    WriteFile(obj);
     return 0;
 }
 string twosComplement(string bin){
@@ -134,6 +136,7 @@ string decToHexa(int n){
 int displacementCalculator(int address, int PC){
     if(abs(address-(PC + 3))>2048){
         errorFlag= true;
+        ErrorLines+="Error line: "+to_string(line)+" Pc displacement out of range\n";
         return 0;
 
     } else{
@@ -152,7 +155,6 @@ void labelAdder(string label,int location){
         TextRecord+="\n";
         TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3, 2));
         LengthOfTextRecord=0;
-        OldPC=PC;
         updateObjectCode(decToHexa(location), symTab[label]);
         NoPC=true;
         vector<string> tempo;
@@ -161,6 +163,7 @@ void labelAdder(string label,int location){
         exists=false;
     }else {
         errorFlag=1;
+        ErrorLines+="Error line: "+to_string(line)+" same label identified twice\n";
         //this means that you used the same label twice which is forbidden
     }
 }
@@ -239,6 +242,12 @@ string ReadFile(string path)
         split(row, "\\s+", &splitted);
         for (ilist = splitted.begin(); ilist != splitted.end(); ++ilist)
             container.push_back(*ilist);
+        if(container.size()==0)
+        {
+            ErrorLines+="Error line: "+to_string(line)+" empty line\n";
+            ++line;
+            continue;
+        }
         for(auto & i : container)
             transform(i.begin(), i.end(), i.begin(), ::toupper);
         if(OPTAB.find(container.at(0))!=OPTAB.end())
@@ -303,7 +312,6 @@ string ReadFile(string path)
                 TextRecord+="T";
 //                TextRecord.insert(LengthIndex,decToHexa(PC - OldPC));
                 exists=true;
-                OldPC=PC;
             }
             if(NoPC)
             {
@@ -375,7 +383,6 @@ string ReadFile(string path)
                     ++size;
                 }
                 start+=sAdd;
-                OldPC=PC;
                 startAdd = PC;
             }
             else if(container.at(0)=="END")
@@ -399,11 +406,26 @@ string ReadFile(string path)
                 orgHandle((container.size() == 1) ? "" : container.at(1));
             }
         }
+        else{
+            ErrorLines+="Error line: "+to_string(line)+" wrong syntax\n";
+        }
         splitted.clear();
         container.clear();
+        ++line;
     }
     CodeFile.close();
     return start+"\n"+TextRecord+"\nE"+FirstExecutable;
+}
+
+void WriteFile(string objcode)
+{
+    ofstream myfile;
+    myfile.open ("Object Code.txt");
+    myfile << objcode;
+    myfile.close();
+    myfile.open ("Error report.txt");
+    (ErrorLines.empty())?myfile << "No Errors":myfile << ErrorLines;
+    myfile.close();
 }
 
 string expressionCalc(string operand){
@@ -422,26 +444,31 @@ string expressionCalc(string operand){
             if(symTab.find(b) != symTab.end()){
                 if(symTab[b].front() == "*"){
                     errorFlag = true;
+                    ErrorLines+="Error line: "+to_string(line)+" Forward reference in expression not allowed\n";
                     return "";
                 }
                 return to_string(stoi(a) + stoi(symTab[b].front()));
             }else{
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                 return "";
             }
         }else if(!checkNumericString(a) && checkNumericString(b)){
             if(symTab.find(a) != symTab.end()){
                 if(symTab[a].front() == "*"){
                     errorFlag = true;
+                    ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                     return "";
                 }
                 return to_string(stoi(b) + stoi(symTab[a].front()));
             }else{
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                 return "";
             }
         }else{
             errorFlag = true;
+            ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
             return "";
         }
     }else if(operand.find('-') != string::npos){
@@ -456,28 +483,33 @@ string expressionCalc(string operand){
             if(symTab.find(b) != symTab.end()){
                 if(symTab[b].front() == "*"){
                     errorFlag = true;
+                    ErrorLines+="Error line: "+to_string(line)+" forward reference in expressions not allowed\n";
                     return "";
                 }
                 return to_string(stoi(a) - stoi(symTab[b].front()));
             }else{
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                 return "";
             }
         }else if(!checkNumericString(a) && checkNumericString(b)){
             if(symTab.find(a) != symTab.end()){
                 if(symTab[a].front() == "*"){
                     errorFlag = true;
+                    ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                     return "";
                 }
                 return to_string(stoi(b) - stoi(symTab[a].front()));
             }else{
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                 return "";
             }
         }else{
             if(symTab.find(a) == symTab.end() || symTab.find(b) == symTab.end() ||
             symTab[a].front() == "*" || symTab[b].front() == "*"){
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                 return "";
             }
             return to_string(stoi(symTab[a].front()) - stoi(symTab[b].front()));
@@ -490,6 +522,7 @@ string expressionCalc(string operand){
         b = *ilist;
         if(checkNumericString(a) && checkNumericString(b)) return to_string(stoi(a) * stoi(b));
         errorFlag = true;
+        ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
         return "";
     }else if(operand.find('/') != string::npos){
         split(operand, "/", &operands);
@@ -500,11 +533,13 @@ string expressionCalc(string operand){
         if(checkNumericString(a) && checkNumericString(b)){
             if(stoi(b) == 0){
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
                 return "";
             }
             return to_string(stoi(a) / stoi(b));
         }
         errorFlag = true;
+        ErrorLines+="Error line: "+to_string(line)+" wrong expression format\n";
         return "";
     }
 }
@@ -533,6 +568,7 @@ void orgHandle(string operand){
         map<string, vector<string>>::iterator imap = symTab.find(operand);
         if(imap == symTab.end() || symTab[operand].front() == "*"){
             errorFlag = true;
+            ErrorLines+="Error line: "+to_string(line)+" ORG with forward reference\n";
             return;
         }
         lcCounter = true;
@@ -545,6 +581,7 @@ void equHandle(string name, string value){
     if(imap != symTab.end()){
         if(symTab[value].front() == "*"){
             errorFlag = true;
+            ErrorLines+="Error line: "+to_string(line)+" EQU with forward reference\n";
         }else {
             symTab[name] = symTab[value];
         }
@@ -553,6 +590,7 @@ void equHandle(string name, string value){
         for(int i = 0; i < value.length(); i++) {
             if (!isdigit(value.at(i))) {
                 errorFlag = true;
+                ErrorLines+="Error line: "+to_string(line)+" EQU with no digit as opperand\n";
                 break;
             }
         }
@@ -711,6 +749,7 @@ string getObjectOpcode(string opcode, string operand1, string operand2){
             if(ireg == REGTAB.end()){
                 if (operand2 != "X"){
                     errorFlag = true;
+                    ErrorLines+="Error line: "+to_string(line)+" wrong register symbol\n";
                     return "";
                 }else{
                     format = (format != 4) ? 3 : 4;
@@ -724,6 +763,7 @@ string getObjectOpcode(string opcode, string operand1, string operand2){
                 ireg =  REGTAB.find(operand2);
                 if(ireg == REGTAB.end()){
                     errorFlag = true;
+                    ErrorLines+="Error line: "+to_string(line)+" wrong register symbol\n";
                     return "";
                 }else{
                     ob += ireg->second;
@@ -734,6 +774,7 @@ string getObjectOpcode(string opcode, string operand1, string operand2){
         }
     }else{
         errorFlag = true;
+        ErrorLines+="Error line: "+to_string(line)+" error getting opcode\n";
         return "";
     }
 }
@@ -775,6 +816,7 @@ string getObjectCode(string opcode, string op1, string op2, int PC) {
     forwardRef = false;
     string opobcode = getObjectOpcode(opcode, op1, op2);
     if (errorFlag) {
+        ErrorLines+="Error line: "+to_string(line)+" Error can't get opcode\n";
         return "";
     }
     if (format == 2) {
