@@ -376,8 +376,6 @@ string ReadFile(string path)
             if((str.compare("WORD")) == 0){
                 if (isExpression(container.at(2)))
                     container.at(2)=expressionCalc(container.at(2));
-                stringstream Str2Int(container.at(2));
-                Str2Int >> x;
                 if (lcCounter) lctr += 3; else PC += 3;
             }else if((str.compare("RESW")) == 0){
                 if (isExpression(container.at(2)))
@@ -388,14 +386,69 @@ string ReadFile(string path)
             }else if((str.compare("BYTE")) == 0){
                 if (isExpression(container.at(2)))
                     container.at(2)=expressionCalc(container.at(2));
-                stringstream Str2Int(container.at(2));
-                Str2Int >> x;
+                else if(container.at(2).at(0)=='C')
+                {
+                    string temp;
+                    for (char c:container.at(2).substr(2,container.at(2).size()-1))
+                        temp+=decToHexa(c);
+                    if(LengthOfTextRecord+temp.length()<=60)
+                    {
+                        TextRecord+=temp;
+                        LengthOfTextRecord+=temp.length();
+                    }
+                    else
+                    {
+                        TextRecord+="\n";
+                        TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
+                        LengthOfTextRecord=0;
+                        sAdd = decToHexa(PC);
+                        size = sAdd.length();
+                        while(size < 6){
+                            sAdd = "0" + sAdd;
+                            ++size;
+                        }
+                        LengthOfTextRecord=0;
+                        TextRecord+=("T"+sAdd);
+                        LengthIndex=TextRecord.length();
+                        NoPC=false;
+                        TextRecord+=temp;
+                        LengthOfTextRecord+=temp.length();
+                    }
+                }
+                else if(container.at(2).at(0)=='X')
+                {
+                    string temp;
+                    for (char c:container.at(2).substr(2,container.at(2).size()-1))
+                        temp+=c;
+                    if(LengthOfTextRecord+temp.length()<=60)
+                    {
+                        TextRecord+=temp;
+                        LengthOfTextRecord+=temp.length();
+                    }
+                    else
+                    {
+                        TextRecord+="\n";
+                        TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
+                        LengthOfTextRecord=0;
+                        sAdd = decToHexa(PC);
+                        size = sAdd.length();
+                        while(size < 6){
+                            sAdd = "0" + sAdd;
+                            ++size;
+                        }
+                        LengthOfTextRecord=0;
+                        TextRecord+=("T"+sAdd);
+                        LengthIndex=TextRecord.length();
+                        NoPC=false;
+                        TextRecord+=temp;
+                        LengthOfTextRecord+=temp.length();
+                    }
+                }
                 if (lcCounter) lctr += 1; else PC += 1;
             }else if((str.compare("RESBYTE")) == 0) {
                 if (isExpression(container.at(2)))
                     container.at(2)=expressionCalc(container.at(2));
                 stringstream Str2Int(container.at(2));
-                Str2Int >> x;
                 Str2Int >> x;
                 if (lcCounter) lctr += x; else PC += x;
             }else if(container.at(1)=="EQU"){
