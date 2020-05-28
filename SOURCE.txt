@@ -13,4 +13,5 @@ ALPHA    EQU     ZARR
 BETA     RESW    5
 GAMMA    RESB    20
          STS     GAMMA,X
+         LDA     GAMMA-BETA
          END     ZEROARR

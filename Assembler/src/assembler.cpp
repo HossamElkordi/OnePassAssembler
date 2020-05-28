@@ -24,7 +24,7 @@ map<string, vector<string>> symTab;
 bool errorFlag=false;
 string TextRecord;
 int format, startAdd;
-bool exists,NoPC=true;;
+bool exists, exp = false, NoPC=true;;
 int PC=0, LengthIndex=6,LengthOfTextRecord=0;
 bool lcCounter = false;
 int lctr,line=1;
@@ -64,10 +64,10 @@ int main() {
     setREGTAB();
 	setDirectives();
 	string path;
-	cout<<"Enter the absolute path of the assembly file"<<endl;
-    cin>>path;
-    string obj=ReadFile("/home/mina/JetBrains Project/Clion/onepassassembler/SOURCE.txt");
-    WriteFile(obj);
+//	cout<<"Enter the absolute path of the assembly file"<<endl;
+//    cin>>path;
+    string obj=ReadFile("C:\\Users\\Geek\\CLionProjects\\OnePassAssembler\\SOURCE.txt");
+//    WriteFile(obj);
     return 0;
 }
 string twosComplement(string bin){
@@ -281,8 +281,10 @@ string ReadFile(string path)
             if (isExpression(container.at(1)))
             {
                 string temp=expressionCalc(container.at(1));
-                if(!temp.empty())
+                if(!temp.empty()) {
                     first=temp;
+                    exp = true;
+                }
             }
             string TempObj=getObjectCode(container.at(0),first,second,PC);
             if(LengthOfTextRecord+TempObj.length()<=60)
@@ -338,8 +340,10 @@ string ReadFile(string path)
             if (isExpression(container.at(2)))
             {
                 string temp=expressionCalc(container.at(2));
-                if(!temp.empty())
+                if(!temp.empty()) {
                     first=temp;
+                    exp = true;
+                }
             }
             string TempObj=getObjectCode(container.at(1),first,second,PC);
             if(LengthOfTextRecord+TempObj.length()<=60)
@@ -802,7 +806,8 @@ string flags(string operand, const string& indexed){
         if(operand[1] >= '0' && operand[1] <= '9'){
             pc = false;
         }
-        nixbpe += "01";
+        if(exp) nixbpe += "11"; else nixbpe += "01";
+        exp = false;
     }else{
         nixbpe += "11";
     }
