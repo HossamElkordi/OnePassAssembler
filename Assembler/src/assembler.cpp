@@ -573,9 +573,9 @@ string ReadFile(string path)
 void WriteFile(string objcode, string path)
 {
     int fileNameSize = 0;
-    for(int i = path.length() - 1; i >= 0; ++i){
-        if(!((path[i] > 'a' && path[i] < 'z') || (path[i] > 'Z' && path[i] < 'Z') ||
-                (path[i] > '1' && path[i] < '9') || path[i] == '.')){
+    for(int i = path.length() - 1; i >= 0; --i){
+        if(!((path[i] >= 'a' && path[i] <= 'z') || (path[i] >= 'A' && path[i] <= 'Z') ||
+                (path[i] >= '0' && path[i] <= '9') || path[i] == '.')){
             break;
         }
         ++fileNameSize;
