@@ -6,7 +6,6 @@
 #include <iterator>
 #include<string>
 #include<vector>
-#include<string>
 #include <unordered_set>
 #include <unordered_map>
 
@@ -56,7 +55,9 @@ void orgHandle(string operand);
 bool checkNumericString(string s);
 bool isExpression(string operand);
 string expressionCalc(string operand);
-void WriteFile(string objectFile);
+void WriteFile(string objectFile, string path);
+void checkUndefinedSymbols();
+
 //============== End Of Functions declarations ===========================
 
 int main() {
@@ -67,9 +68,27 @@ int main() {
 	cout<<"Enter the absolute path of the assembly file"<<endl;
     getline(cin,path);
     string obj=ReadFile(path);
-    WriteFile(obj);
+    cout<<obj;
+    checkUndefinedSymbols();
+    WriteFile(obj, path);
     return 0;
 }
+
+void checkUndefinedSymbols(){
+    string error = "Undefined Symbol Error for : ";
+    bool undefined = false;
+    map<string, vector<string>>::iterator imap;
+    for(imap = symTab.begin(); imap != symTab.end(); ++imap){
+        if(imap->second.front() == "*"){
+            error += (imap->first + ", ");
+            undefined = true;
+        }
+    }
+    if(undefined){
+        ErrorLines += error.substr(0, error.length() - 2);
+    }
+}
+
 string twosComplement(string bin){
     int n = bin.length();
     int i;
@@ -551,13 +570,22 @@ string ReadFile(string path)
     return start+"\n"+TextRecord+"\nE"+FirstExecutable;
 }
 
-void WriteFile(string objcode)
+void WriteFile(string objcode, string path)
 {
+    int fileNameSize = 0;
+    for(int i = path.length() - 1; i >= 0; ++i){
+        if(!((path[i] > 'a' && path[i] < 'z') || (path[i] > 'Z' && path[i] < 'Z') ||
+                (path[i] > '1' && path[i] < '9') || path[i] == '.')){
+            break;
+        }
+        ++fileNameSize;
+    }
+    path = path.substr(0, path.length()-fileNameSize);
     ofstream myfile;
-    myfile.open ("Object Code.txt");
+    myfile.open (path + "Object Code.txt");
     myfile << objcode;
     myfile.close();
-    myfile.open ("Error report.txt");
+    myfile.open (path + "Error report.txt");
     (ErrorLines.empty())?myfile << "No Errors":myfile << ErrorLines;
     myfile.close();
 }
