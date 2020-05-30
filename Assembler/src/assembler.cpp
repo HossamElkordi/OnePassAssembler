@@ -293,8 +293,6 @@ string ReadFile(string path)
                 LengthOfTextRecord=0;
                 TextRecord+=("T"+sAdd);
                 LengthIndex=TextRecord.length();
-                if(FirstExecutable.empty())
-                    FirstExecutable=sAdd;
                 NoPC=false;
             }
             if (isExpression(container.at(1)))
@@ -318,6 +316,16 @@ string ReadFile(string path)
                 LengthOfTextRecord=0;
                 TextRecord+="\n";
                 goto LOOP;
+            }
+            if(FirstExecutable.empty())
+            {
+                sAdd = decToHexa(PC);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd = "0" + sAdd;
+                    ++size;
+                }
+                FirstExecutable=sAdd;
             }
             PC+=format;
         }
@@ -351,8 +359,6 @@ string ReadFile(string path)
                 }
                 TextRecord+=("T"+sAdd);
                 LengthOfTextRecord=0;
-                if(FirstExecutable.empty())
-                    FirstExecutable=sAdd;
                 LengthIndex=TextRecord.length();
                 NoPC=false;
             }
@@ -377,6 +383,16 @@ string ReadFile(string path)
                 TextRecord.insert(LengthIndex,decToHexa(LengthOfTextRecord/2).substr(3,2));
                 LengthOfTextRecord=0;
                 goto LOOP2;
+            }
+            if(FirstExecutable.empty())
+            {
+                sAdd = decToHexa(PC);
+                size = sAdd.length();
+                while(size < 6){
+                    sAdd = "0" + sAdd;
+                    ++size;
+                }
+                FirstExecutable=sAdd;
             }
             PC+=format;
         }
@@ -407,8 +423,6 @@ string ReadFile(string path)
                     }
                     TextRecord+=("T"+sAdd);
                     LengthOfTextRecord=0;
-                    if(FirstExecutable.empty())
-                        FirstExecutable=sAdd;
                     LengthIndex=TextRecord.length();
                     NoPC=false;
                 }
@@ -457,8 +471,6 @@ string ReadFile(string path)
                         }
                         TextRecord+=("T"+sAdd);
                         LengthOfTextRecord=0;
-                        if(FirstExecutable.empty())
-                            FirstExecutable=sAdd;
                         LengthIndex=TextRecord.length();
                         NoPC=false;
                     }
@@ -491,8 +503,6 @@ string ReadFile(string path)
                     }
                     TextRecord+=("T"+sAdd);
                     LengthOfTextRecord=0;
-                    if(FirstExecutable.empty())
-                        FirstExecutable=sAdd;
                     LengthIndex=TextRecord.length();
                     NoPC=false;
                 }
