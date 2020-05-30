@@ -1,8 +1,10 @@
 ZEROARR  START   1000
+AAA       RESB   4096
 ZARR0     Word    500
           LDX    #0
          LDS    #0
 LOOP     STS     ZARR,X
+         LDQ    soso
          RMO     X,A
          ADD    #3
          RMO     A,X
